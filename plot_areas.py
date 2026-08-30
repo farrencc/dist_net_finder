@@ -24,21 +24,38 @@ warnings.filterwarnings("ignore")
 OUT_DIR = "data"
 DPI = 160
 
+# Voltage band is an ordered quantity, so the bands take a single-hue ordinal
+# ramp (light = low voltage, dark = high) rather than a set of unrelated hues -
+# a rainbow would imply the bands are unordered categories, which they are not.
+# Validated light-mode: monotone lightness, adjacent dL >= 0.06, light end
+# 2.06:1 against the surface. Untagged features are off that scale entirely and
+# take the neutral muted ink; they are an absence of data, not a voltage class.
+# Line weight repeats the ordering so band is never carried by colour alone.
+SURFACE = "#fcfcfb"
+INK = "#0b0b0b"
+INK_SECONDARY = "#52514e"
+INK_MUTED = "#898781"
+HAIRLINE = "#e1e0d9"
+
 BAND_STYLE = {
-    "LV (<1 kV)":                  {"color": "#7f8c8d", "lw": 0.4},
-    "MV (1-<38 kV)":               {"color": "#2f7fd1", "lw": 0.5},
-    "38 kV":                       {"color": "#e08214", "lw": 1.0},
-    "HV >=110 kV (transmission)":  {"color": "#c0392b", "lw": 1.6},
-    m.UNKNOWN_BAND:                {"color": "#b9c4cc", "lw": 0.4},
+    "LV (<1 kV)":                  {"color": "#86b6ef", "lw": 0.45},
+    "MV (1-<38 kV)":               {"color": "#3987e5", "lw": 0.55},
+    "38 kV":                       {"color": "#1c5cab", "lw": 1.0},
+    "HV >=110 kV (transmission)":  {"color": "#0d366b", "lw": 1.5},
+    m.UNKNOWN_BAND:                {"color": "#898781", "lw": 0.35},
 }
 # Drawn in this order so the sparse high-voltage lines sit on top.
 BAND_DRAW_ORDER = [m.UNKNOWN_BAND, "LV (<1 kV)", "MV (1-<38 kV)",
                    "38 kV", "HV >=110 kV (transmission)"]
 
+# Asset type is a genuine category, not a magnitude, so these take hues off the
+# voltage ramp: orange for transformers reads clearly against every blue step,
+# substations take primary ink, and poles take the recessive baseline tone since
+# there are tens of thousands of them and they are context, not subject.
 POINT_STYLE = {
-    "substation":  {"color": "#111111", "marker": "s", "size": 26, "z": 6},
-    "transformer": {"color": "#7b2cbf", "marker": "^", "size": 14, "z": 5},
-    "pole":        {"color": "#95a5a6", "marker": ".", "size": 0.7, "z": 3},
+    "substation":  {"color": "#0b0b0b", "marker": "s", "size": 24, "z": 6},
+    "transformer": {"color": "#eb6834", "marker": "^", "size": 15, "z": 5},
+    "pole":        {"color": "#c3c2b7", "marker": ".", "size": 0.8, "z": 3},
 }
 
 
@@ -85,8 +102,10 @@ def plot_area(key: str) -> None:
 
     boundary = gpd.GeoSeries([data["boundary"]], crs=m.WGS84).to_crs(m.ITM)
     fig, ax = plt.subplots(figsize=(9.5, 10.5))
-    boundary.boundary.plot(ax=ax, color="#333333", lw=0.9, zorder=1)
-    boundary.plot(ax=ax, color="#fbfbfa", zorder=0)
+    fig.patch.set_facecolor(SURFACE)
+    ax.set_facecolor(SURFACE)
+    boundary.boundary.plot(ax=ax, color="#c3c2b7", lw=0.8, zorder=1)
+    boundary.plot(ax=ax, color=SURFACE, zorder=0)
 
     lines_itm = lines.to_crs(m.ITM) if not lines.empty else lines
     present_bands = []
@@ -128,8 +147,11 @@ def plot_area(key: str) -> None:
                        markersize=7 if kind != "pole" else 4,
                        label=f"{kind}  ({n:,})")
                 for kind, st, n in reversed(present_points)]
-    ax.legend(handles=handles, loc="upper left", fontsize=7.5, frameon=True,
-              framealpha=0.93, title="voltage band / asset", title_fontsize=8)
+    leg = ax.legend(handles=handles, loc="upper left", fontsize=7.5, frameon=True,
+                    framealpha=0.95, edgecolor=HAIRLINE, facecolor=SURFACE,
+                    labelcolor=INK_SECONDARY, title="voltage band / asset",
+                    title_fontsize=8)
+    leg.get_title().set_color(INK_MUTED)
 
     total_km = float(lines["length_km"].sum()) if not lines.empty else 0.0
     frac = (float(lines["voltage_v"].notna().mean()) if not lines.empty else 0.0)
@@ -138,16 +160,18 @@ def plot_area(key: str) -> None:
         f"OpenStreetMap power features - {len(lines):,} line features, "
         f"{total_km:,.0f} km, {frac:.0%} voltage-tagged\n"
         f"Geofabrik ireland-and-northern-ireland extract - EPSG:2157",
-        fontsize=10.5)
-    ax.set_xlabel("ITM easting (m)", fontsize=8)
-    ax.set_ylabel("ITM northing (m)", fontsize=8)
-    ax.tick_params(labelsize=7)
+        fontsize=10.5, color=INK)
+    ax.set_xlabel("ITM easting (m)", fontsize=8, color=INK_MUTED)
+    ax.set_ylabel("ITM northing (m)", fontsize=8, color=INK_MUTED)
+    ax.tick_params(labelsize=7, colors=INK_MUTED)
+    for spine in ax.spines.values():
+        spine.set_edgecolor(HAIRLINE)
     ax.set_aspect("equal")
 
     os.makedirs(OUT_DIR, exist_ok=True)
     png = os.path.join(OUT_DIR, f"{key}_power.png")
     fig.tight_layout()
-    fig.savefig(png, dpi=DPI)
+    fig.savefig(png, dpi=DPI, facecolor=SURFACE)
     plt.close(fig)
 
     gpkg = os.path.join(OUT_DIR, f"{key}_power.gpkg")

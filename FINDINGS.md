@@ -287,6 +287,13 @@ two border counties with a fraction of its load. There is no ordering of these
 counties by demand, population or network reality that reproduces the observed
 ranking. What it reproduces is where an active local mapper happened to work.
 
+`data/national_distribution.png` shows this directly. The 38 kV skeleton reads
+as a coherent national network; the MV layer above it is a set of dense local
+clusters — Monaghan and Louth, Sligo, the Dublin fringe, pockets of Cork and
+Kerry — separated by large areas holding only untagged fragments or nothing at
+all. Those clusters are where mappers have worked. The blank areas are not
+unserved; every part of the state has a distribution network.
+
 The variation is real, large, and unrelated to anything a capacity-expansion
 model wants to allocate. Using mapped circuit length as a demand or activity
 prior would import a 7× arbitrary regional distortion. That is worse than using
@@ -364,7 +371,8 @@ python national_check.py          # data/national.json - island-wide graph by vo
 python subtransmission_check.py   # data/subtransmission.json - per-area layers
 python missing_cable.py           # data/missing_cable.json - MST lower bound
 python county_sweep.py            # data/county_sweep.csv - all 26 counties of the Republic
-python plot_areas.py              # data/*.png (160 dpi) and data/*.gpkg (lines, nodes; EPSG:2157)
+python plot_areas.py              # per-area PNGs (160 dpi) and GeoPackages (lines, nodes; EPSG:2157)
+python plot_national.py           # data/national_distribution.{png,gpkg} - all sub-110 kV line, Republic
 python -m pytest test_voltage_branch.py
 ```
 
