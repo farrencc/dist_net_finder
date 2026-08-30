@@ -1,0 +1,3 @@
+data/raw/*.osm.pbf
+__pycache__/
+*.pyc

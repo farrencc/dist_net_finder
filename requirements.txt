@@ -5,3 +5,5 @@ networkx
 pyrosm
 shapely
 pyogrio
+numpy
+pandas
