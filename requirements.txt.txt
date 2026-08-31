@@ -1,7 +1,0 @@
-osmnx>=2.0
-geopandas>=1.0
-matplotlib
-networkx
-pyrosm
-shapely
-pyogrio
