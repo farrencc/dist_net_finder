@@ -6,3 +6,8 @@
 data/raw/
 __pycache__/
 *.pyc
+
+# workshop
+.venv/
+graph-workshop/data/session1_state.npz
+graph-workshop/data/cache/

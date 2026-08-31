@@ -1,0 +1,24 @@
+# conda env create -f environment.yml && conda activate graph-workshop
+name: graph-workshop
+channels:
+  - conda-forge
+dependencies:
+  - python=3.11
+  - numpy=2.4.6
+  - pandas=3.0.5
+  - scipy=1.17.1
+  - matplotlib=3.11.1
+  - networkx=3.6.1
+  - scikit-learn=1.9.0
+  - shapely=2.1.2
+  - pyproj=3.7.2
+  - pyogrio=0.13.0
+  - geopandas=1.1.4
+  - mapclassify=2.10.0
+  - libpysal=4.14.1
+  - esda=2.9.0
+  - splot=1.1.7
+  - osmnx=2.1.1
+  - requests=2.34.2
+  - jupyterlab=4.6.3
+  - ipykernel=7.3.0

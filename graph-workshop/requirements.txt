@@ -1,0 +1,29 @@
+# Verified together on Python 3.11. pip install -r requirements.txt
+numpy==2.4.6
+pandas==3.0.5
+scipy==1.17.1
+matplotlib==3.11.1
+networkx==3.6.1
+scikit-learn==1.9.0
+
+# geospatial
+shapely==2.1.2
+pyproj==3.7.2
+pyogrio==0.13.0
+geopandas==1.1.4
+mapclassify==2.10.0
+
+# spatial statistics
+libpysal==4.14.1
+esda==2.9.0
+splot==1.1.7
+
+# street networks
+osmnx==2.1.1
+
+# only used by data/prepare_data.py
+requests==2.34.2
+
+# notebook front end
+jupyterlab==4.6.3
+ipykernel==7.3.0
