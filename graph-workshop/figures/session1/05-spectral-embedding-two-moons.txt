@@ -1,0 +1,47 @@
+TITLE
+  The same moons in embedded coordinates collapse to two points
+
+SOURCE
+  Notebook : graph-workshop/notebooks/session1_instructor.ipynb
+  Cell     : 34
+  Section  : 4 - Spectral clustering (clock 0:50)
+  Image    : 05-spectral-embedding-two-moons.png
+
+WHAT IT SHOWS
+  Two panels.
+
+  Left, "original coordinates": the two-moons data coloured by the labels from
+  a hand-built spectral pipeline - a 12-nearest-neighbour graph, its Laplacian,
+  the first two non-trivial eigenvectors, then k-means in that space. The
+  colours now follow the crescents correctly, red for the upper moon and blue
+  for the lower.
+
+  Right, "embedded coordinates: two points": the same 400 points plotted with
+  eigenvector 1 on the x axis and eigenvector 2 on the y axis. They no longer
+  look like moons at all - they collapse onto two tight, nearly collinear
+  streaks with a clear empty gap between them, red at the lower left and blue
+  at the upper right.
+
+  Note the axis offsets on the right panel (about 1e-14 and -1.31e-2): the
+  spread within each streak is numerically tiny compared with the gap between
+  them.
+
+NUMBERS ON THE FIGURE
+  K_NN = 12 nearest neighbours, symmetrised before use.
+  k = 2 eigenvectors used for the embedding.
+
+WHY IT IS HERE
+  The mechanism, in one image. Spectral clustering does not cluster the data;
+  it clusters an embedding of the data, and k-means at the end is only there to
+  finish an already-trivial job.
+
+  The geometry that made the moons hard - non-convex, interlocking - is gone
+  after the change of coordinates. Pair this directly with the k-means failure
+  figure: same data, same final algorithm, different coordinates, opposite
+  outcome.
+
+SLIDESHOW NOTES
+  Suggested slide title : Change the coordinates, and the problem disappears
+  One-line caption      : In eigenvector space the two moons are two blobs - now k-means is enough.
+  Shape                 : Wide, 5:2.
+  Sequencing            : Directly after the k-means failure figure. The contrast is the whole point.

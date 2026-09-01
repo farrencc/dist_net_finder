@@ -1,0 +1,38 @@
+TITLE
+  The eigengap heuristic for choosing k
+
+SOURCE
+  Notebook : graph-workshop/notebooks/session1_instructor.ipynb
+  Cell     : 37
+  Section  : 4 - Spectral clustering (clock 0:50) - optional, marked cut-first
+  Image    : 07-eigengap-plot.png
+
+WHAT IT SHOWS
+  A single line-and-marker plot titled "eigengap". The x axis is the eigenvalue
+  index 1 to 10 and the y axis is the generalised eigenvalue of the two-moons
+  kNN graph.
+
+  The curve starts at zero at index 1, stays very low through index 4, then
+  lifts away and climbs steadily to about 0.054 by index 10. The rise is
+  gradual rather than a single dramatic step.
+
+NUMBERS ON THE FIGURE
+  Approximate values: index 1 ~ 0.0000, 2 ~ 0.0004, 3 ~ 0.0033, 4 ~ 0.0043,
+  5 ~ 0.0128, 6 ~ 0.0149, 10 ~ 0.0536.
+
+WHY IT IS HERE
+  The standard heuristic for picking the number of clusters: count the
+  eigenvalues sitting near zero, and look for the jump where the spectrum lifts
+  away.
+
+  Show it as a heuristic, not an oracle. This curve is a soft, gradual rise
+  rather than a clean step, which is the honest situation on real data - the
+  eigengap is a hint, and if two people read a different k off the same plot,
+  they are both allowed to. The notebook marks this figure cut-first: nothing
+  later depends on it.
+
+SLIDESHOW NOTES
+  Suggested slide title : How many clusters? Look for the gap
+  One-line caption      : Eigenvalues near zero count the clusters - when the gap is this soft, so is the answer.
+  Shape                 : Wide, 8:4.6. Small, simple, safe to shrink.
+  Sequencing            : Optional. Drop it first if the deck is running long.

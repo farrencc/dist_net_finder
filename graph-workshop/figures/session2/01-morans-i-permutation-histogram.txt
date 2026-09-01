@@ -1,0 +1,44 @@
+TITLE
+  Moran's I against its permutation null
+
+SOURCE
+  Notebook : graph-workshop/notebooks/session2_instructor.ipynb
+  Cell     : 10
+  Section  : 2 - Moran's I (clock 0:10)
+  Image    : 01-morans-i-permutation-histogram.png
+
+WHAT IT SHOWS
+  A single grey histogram with white bar edges, titled "999 permutations of the
+  same values over the same map". The x axis is Moran's I under random
+  reassignment, the y axis counts permutations.
+
+  The null distribution is a tidy bell centred just below zero, spanning roughly
+  -0.15 to +0.15. A black dashed vertical line marks E[I] = -0.0062. A thick
+  crimson vertical line marks the observed I = +0.7176, sitting far off to the
+  right with an enormous empty gap between it and the nearest null draw.
+
+NUMBERS ON THE FIGURE
+  I       = +0.7176
+  E[I]    = -0.0062  (= -1/(n-1), not zero)
+  z-score = large and positive
+  p_sim   = 0.0010   (999 permutations - the smallest value this test can report)
+
+WHY IT IS HERE
+  How inference works when the sampling distribution is unknown. Rather than
+  assume a distribution, keep the map and the values exactly as they are and
+  break only the pairing between them, 999 times. That yields the distribution
+  of I under "no spatial relationship", against which the real value is
+  compared.
+
+  The gap here is not marginal - the observed value is nowhere near the null, so
+  the honest report is "p is at the floor of what 999 permutations can resolve",
+  not "p = 0.001 exactly".
+
+  The small detail worth stating: E[I] is -1/(n-1), not zero. Under the null,
+  Moran's I is very slightly negative by construction.
+
+SLIDESHOW NOTES
+  Suggested slide title : Is that pattern surprising?
+  One-line caption      : 999 reshuffles of the same values over the same map - and the real value is nowhere near them.
+  Shape                 : Wide, 10:5.5.
+  Sequencing            : Opens Session 2. The formal answer to the eyeball impression from the Session 1 choropleth.

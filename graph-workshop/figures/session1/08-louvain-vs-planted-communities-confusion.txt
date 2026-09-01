@@ -1,0 +1,41 @@
+TITLE
+  Louvain against a planted stochastic block model
+
+SOURCE
+  Notebook : graph-workshop/notebooks/session1_instructor.ipynb
+  Cell     : 41
+  Section  : 5 - Community detection (clock 1:20)
+  Image    : 08-louvain-vs-planted-communities-confusion.png
+
+WHAT IT SHOWS
+  A 3x2 confusion matrix drawn as a Blues heatmap with the counts written into
+  each cell and a colourbar from 0 to 60. Rows are the planted blocks -
+  "block 0", "block 1", "border" - and columns are the two communities Louvain
+  returned.
+
+  Block 0 maps entirely to community 0 (60 and 0). Block 1 maps entirely to
+  community 1 (0 and 60). The 20-node border block splits exactly down the
+  middle, 10 to each side, and shows as a pale row.
+
+NUMBERS ON THE FIGURE
+  Stochastic block model: SIZES = [60, 60, 20], P_IN = 0.20, P_CROSS = 0.004,
+  P_BORDER_OUT = 0.12, P_BORDER_IN = 0.02, seed = 7.
+
+WHY IT IS HERE
+  Two messages in one picture.
+
+  The good news: on structure that genuinely exists, Louvain recovers it
+  perfectly - 120 of 120 nodes in the two main blocks, no errors.
+
+  The honest news: the border block was built to be ambiguous. It is
+  deliberately sparser inside (P_BORDER_IN = 0.02) than the two big blocks
+  (P_IN = 0.20) and reasonably well connected to both, so it is not really a
+  community at all. The even 10/10 split is not a failure - there is no correct
+  answer to give, and any method would have to invent one. Use this to warn
+  against reading every returned community as a real thing.
+
+SLIDESHOW NOTES
+  Suggested slide title : Louvain recovers what is there - and splits what isn't
+  One-line caption      : Both planted blocks perfectly; the deliberately ambiguous border block cut 10/10.
+  Shape                 : Near square, 6.5:5. Small figure, needs to be shown large enough to read the counts.
+  Sequencing            : The community-detection reality check.

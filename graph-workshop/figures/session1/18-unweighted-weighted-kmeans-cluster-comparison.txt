@@ -1,0 +1,46 @@
+TITLE
+  Three ways to draw one line through Dublin
+
+SOURCE
+  Notebook : graph-workshop/notebooks/session1_instructor.ipynb
+  Cell     : 60
+  Section  : 7 - Applied: weighted clustering (clock 2:05)
+  Image    : 18-unweighted-weighted-kmeans-cluster-comparison.png
+
+WHAT IT SHOWS
+  Three categorical maps in a row, each a two-colour split (Set2: grey and
+  teal), no axes.
+
+  Left, "unweighted Fiedler": teal covers the north and north-east, grey the
+  south and west. A clean, contiguous, geographically tidy division that owes
+  nothing to the census data.
+
+  Centre, "weighted, sigma = 0.43": teal now covers the southern band plus the
+  western pocket, grey the north. Still fully contiguous, but the line has moved
+  to follow the attribute.
+
+  Right, "k-means on the attribute, no graph": teal appears as scattered patches
+  all over the map with no spatial coherence at all - neighbouring EDs routinely
+  land in different clusters.
+
+NUMBERS ON THE FIGURE
+  Labels are the sign of the respective Fiedler vectors; the k-means panel is
+  KMeans(n_clusters=2) run on the standardised attribute alone, ignoring the
+  graph entirely.
+
+WHY IT IS HERE
+  The summary slide for Session 1. Three methods, one dataset, three genuinely
+  different notions of what a region is.
+
+  Geometry alone gives you contiguity without meaning. The attribute alone gives
+  you meaning without contiguity - the right-hand map is not a set of regions,
+  it is a recolouring. Only the weighted graph delivers both at once, and that
+  is the entire argument for doing any of this.
+
+  The centre map is also the object Session 2 spends its capstone testing.
+
+SLIDESHOW NOTES
+  Suggested slide title : Geometry, attribute, or both
+  One-line caption      : Contiguous but meaningless, meaningful but scattered, or the weighted graph that gives you both.
+  Shape                 : Very wide, 16:5.6.
+  Sequencing            : Closing slide of Session 1's main arc, and the direct set-up for Session 2's capstone.

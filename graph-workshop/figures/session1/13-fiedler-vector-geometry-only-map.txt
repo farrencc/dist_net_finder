@@ -1,0 +1,43 @@
+TITLE
+  Fiedler vector of Dublin: geometry only, no census data
+
+SOURCE
+  Notebook : graph-workshop/notebooks/session1_instructor.ipynb
+  Cell     : 51
+  Section  : 6 - Geospatial (clock 1:45)
+  Image    : 13-fiedler-vector-geometry-only-map.png
+
+WHAT IT SHOWS
+  A portrait choropleth on the coolwarm scale with a colourbar labelled
+  "Fiedler entry" running about -0.15 to +0.09, titled "Fiedler vector:
+  geometry only, no census data".
+
+  The result is a smooth, almost continuous gradient across the city: deep blue
+  through the north-east and out along the coastal spit, pale neutral through
+  the centre, and deep red across the south-west and west. There are no sharp
+  internal edges - the field varies gently from one end of the map to the
+  other.
+
+NUMBERS ON THE FIGURE
+  lambda_1 = 4.37e-16   (zero to machine precision - the graph is connected)
+  lambda_2 = 0.06089
+
+WHY IT IS HERE
+  The barbell trick, applied to a real city, and deliberately run with the
+  census values switched off. This vector knows only which EDs touch which. What
+  it finds is the geometric long axis of Dublin - the north-east to south-west
+  gradient - and its sign split is essentially "cut the city at its narrowest
+  waist".
+
+  Two things to draw out. lambda_1 being zero to 1e-16 rather than exactly 0.0
+  is the numerical signature of a single connected component, and is worth
+  showing so nobody panics later. And the smooth gradient, versus the barbell's
+  clean plateau-cliff-plateau, is the tell that this graph has no strong
+  bottleneck: the split exists, but it is not dramatic. That is exactly the gap
+  the attribute weighting fills in the next section.
+
+SLIDESHOW NOTES
+  Suggested slide title : Cut the city in half, knowing nothing about it
+  One-line caption      : Only adjacency goes in - and out comes the north-east/south-west axis of Dublin.
+  Shape                 : Portrait, 8:9.
+  Sequencing            : The before picture. Pair it with the weighted Fiedler map for a direct A/B.

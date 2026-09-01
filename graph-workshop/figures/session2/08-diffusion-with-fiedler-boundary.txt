@@ -1,0 +1,44 @@
+TITLE
+  The heat front stalls exactly at the Fiedler boundary
+
+SOURCE
+  Notebook : graph-workshop/notebooks/session2_instructor.ipynb
+  Cell     : 26
+  Section  : 3 - Diffusion (clock 0:45) - optional, marked cut-first
+  Image    : 08-diffusion-with-fiedler-boundary.png
+
+WHAT IT SHOWS
+  A single portrait map: the t = 1/lambda_2 diffusion snapshot on inferno, with
+  the boundary of the positive-Fiedler region dissolved into one polygon and
+  traced over it as a thick cyan line. The source ED is outlined in white just
+  north of the river.
+
+  The cyan curve wraps the southern and south-western part of the city. The
+  colour transition in the underlying heat field - bright yellows and oranges to
+  the north-east, deep purples and black to the south-west - runs essentially
+  along that same line.
+
+NUMBERS ON THE FIGURE
+  Snapshot at t = 1.0 * tau, tau = 1/lambda_2.
+  Cyan line: boundary of the region where the Fiedler entry is positive.
+
+WHY IT IS HERE
+  The payoff of the diffusion section, and the visual argument the capstone then
+  measures numerically.
+
+  Two apparently unrelated computations - partitioning a graph by the sign of an
+  eigenvector, and simulating heat spreading through it - produce the same line.
+  They are the same fact seen from two directions: the slowest-decaying mode
+  governs the late-time shape of the diffusion, and that mode is the Fiedler
+  vector.
+
+  Stated more usefully: the spectral boundary is not a label placed on the map
+  from outside. It is where things actually have difficulty crossing.
+
+  Marked cut-first in the notebook; the capstone does not require it.
+
+SLIDESHOW NOTES
+  Suggested slide title : The partition is where the heat stops
+  One-line caption      : Spectral cut and diffusion front are the same line, arrived at two different ways.
+  Shape                 : Portrait, 8:9. The cyan boundary is the subject - do not shrink this one.
+  Sequencing            : Closes the diffusion section. Strong candidate for a full-screen slide.

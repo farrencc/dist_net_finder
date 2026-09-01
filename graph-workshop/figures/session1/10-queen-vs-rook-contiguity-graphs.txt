@@ -1,0 +1,41 @@
+TITLE
+  Queen vs Rook contiguity: turning a map into a graph is a choice
+
+SOURCE
+  Notebook : graph-workshop/notebooks/session1_instructor.ipynb
+  Cell     : 47
+  Section  : 6 - Geospatial (clock 1:45)
+  Image    : 10-queen-vs-rook-contiguity-graphs.png
+
+WHAT IT SHOWS
+  Two panels, each showing the Dublin EDs as pale grey polygons with the
+  contiguity graph drawn over them in crimson - one line segment per adjacency,
+  joining the representative points of neighbouring EDs.
+
+  Left, Queen contiguity: two EDs are neighbours if they share any boundary
+  point, corners included.
+  Right, Rook contiguity: they must share an actual boundary segment.
+
+  The two webs look broadly alike; the difference is in the extra corner-only
+  links that the Queen panel carries, most visible where several EDs meet at a
+  point.
+
+NUMBERS ON THE FIGURE
+  Queen: 462 edges, mean degree 5.70
+  Rook:  414 edges, mean degree 5.11
+  A 48-edge difference on the same 162 polygons.
+
+WHY IT IS HERE
+  There is no canonical graph hiding inside a map - you build one, and the rule
+  you pick changes the answer. Everything downstream (the Laplacian, the Fiedler
+  vector, betweenness, Moran's I, the diffusion) runs on whichever of these two
+  you chose.
+
+  The workshop uses Queen from here on. The point is not that Queen is right,
+  it is that the choice was made deliberately and should be stated.
+
+SLIDESHOW NOTES
+  Suggested slide title : Two defensible graphs from one map
+  One-line caption      : Queen counts shared corners, Rook does not: 462 edges against 414.
+  Shape                 : Wide, 14:7.5. Fine to show at moderate size - the edge counts in the titles carry the message.
+  Sequencing            : Directly after the choropleth. This is the map-to-graph bridge.

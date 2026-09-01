@@ -1,0 +1,40 @@
+TITLE
+  Betweenness centrality on the contiguity graph
+
+SOURCE
+  Notebook : graph-workshop/notebooks/session1_instructor.ipynb
+  Cell     : 50
+  Section  : 6 - Geospatial (clock 1:45)
+  Image    : 12-betweenness-centrality-map.png
+
+WHAT IT SHOWS
+  A portrait choropleth of the EDs on the magma colormap - black for low,
+  through purple and orange, to pale cream for high - with a colourbar labelled
+  "betweenness" running 0.00 to about 0.26. Title: "betweenness centrality".
+
+  Most of the map is near black. What lights up is a small set of connectors:
+  the brightest ED sits just north of the river in the centre-east, an orange
+  chain runs east along the docklands and the south quays, a large rose-coloured
+  ED sits out west, and a cream one lies in the north-west inner area.
+
+NUMBERS ON THE FIGURE
+  Betweenness ranges from 0.00 to roughly 0.26.
+  Computed with nx.betweenness_centrality on the 162-node Queen graph.
+
+WHY IT IS HERE
+  A property of the geometry, not of the census attribute - this map would look
+  identical if every education value were deleted. Betweenness counts how many
+  shortest paths run through each ED, so it picks out the waists of the city:
+  the divisions that bridge north and south across the river, and the elongated
+  ones threading along the coast.
+
+  It also has a job later. The ED with the highest betweenness is the node
+  Session 2 releases its heat shock from, precisely because it is the
+  best-connected place to start - the hardest possible test of whether a
+  boundary can hold anything back.
+
+SLIDESHOW NOTES
+  Suggested slide title : Which divisions are the bridges?
+  One-line caption      : Betweenness finds the waists of the city - and the brightest one becomes tomorrow's shock source.
+  Shape                 : Portrait, 8:9.
+  Sequencing            : Sets up the Session 2 diffusion source. Worth flagging that link out loud.

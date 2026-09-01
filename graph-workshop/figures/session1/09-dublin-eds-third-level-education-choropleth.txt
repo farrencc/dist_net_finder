@@ -1,0 +1,44 @@
+TITLE
+  Dublin City Electoral Divisions, third-level education (Census 2022)
+
+SOURCE
+  Notebook : graph-workshop/notebooks/session1_instructor.ipynb
+  Cell     : 46
+  Section  : 6 - Geospatial (clock 1:45)
+  Image    : 09-dublin-eds-third-level-education-choropleth.png
+
+WHAT IT SHOWS
+  A portrait choropleth of the Dublin City electoral divisions with axes turned
+  off and thin white ED boundaries, titled "Dublin City EDs, third-level
+  education (Census 2022)". Six quantile classes on viridis, from dark purple
+  (low) through teal and green to yellow (high), with a legend boxed at the
+  lower right headed "% third level".
+
+  The spatial pattern is strong and legible without any statistics: a broad
+  yellow and light-green band across the south and south-east inner suburbs,
+  dark purple concentrated in the north and north-west, and a further dark
+  pocket in the far west and south-west. The coastal spit to the north-east
+  reads mid-to-high green.
+
+NUMBERS ON THE FIGURE
+  Quantile class breaks (percent of population with third-level education):
+    9.20 - 25.05, 25.05 - 37.52, 37.52 - 48.29,
+    48.29 - 59.77, 59.77 - 70.27, 70.27 - 85.64
+  Reprojected to EPSG:2157, Irish Transverse Mercator.
+
+WHY IT IS HERE
+  The first sight of the real dataset, and the attribute that every weighted
+  computation later in both sessions runs on. Worth pausing on: the clustering
+  is visible to the naked eye here, which is exactly why the formal tests in
+  Session 2 need to be able to say something the eye cannot - namely how
+  surprised to be.
+
+  Also the moment to make the CRS point: the file is read and immediately
+  reprojected to a metric Irish grid, because contiguity, distance and area all
+  depend on it.
+
+SLIDESHOW NOTES
+  Suggested slide title : The data: Dublin, by third-level education
+  One-line caption      : 162 electoral divisions, one census attribute, and a pattern you can already see.
+  Shape                 : Portrait, 8:9. Legend is inside the frame at lower right.
+  Sequencing            : Opens the geospatial half of Session 1. Reused as the baseline for every later map.

@@ -1,0 +1,42 @@
+TITLE
+  LISA cluster map at p < 0.05 (uncorrected)
+
+SOURCE
+  Notebook : graph-workshop/notebooks/session2_instructor.ipynb
+  Cell     : 14
+  Section  : 2 - Moran's I (clock 0:10)
+  Image    : 03-lisa-cluster-map.png
+
+WHAT IT SHOWS
+  A portrait map of the EDs produced by splot's lisa_cluster, titled "LISA
+  clusters, p < 0.05", with a boxed legend at lower right: HH red, HL orange,
+  LH pale blue, LL dark blue, ns grey.
+
+  A large red HH block covers the south and south-east. Dark blue LL areas
+  occupy the north and north-west plus a western pocket. A handful of orange HL
+  and pale blue LH divisions appear near the boundaries between those regimes,
+  several of them along the river and docklands. Roughly half the map is grey
+  and not significant.
+
+NUMBERS ON THE FIGURE
+  alpha = 0.05, 999 permutations per ED, seed = 7.
+  Local Moran's I computed per electoral division.
+
+WHY IT IS HERE
+  Global Moran's I says clustering exists; it cannot say where. LISA runs the
+  same logic once per ED and localises it.
+
+  The four categories carry different meanings and should not be flattened: HH
+  and LL are cluster cores, while HL and LH are spatial outliers - a high place
+  among low neighbours, or the reverse. Their tendency to appear along the seams
+  between the red and blue regions is not incidental, it is what a boundary
+  looks like in LISA terms.
+
+  Important caveat to raise here and settle in the next figure: this map runs
+  one hypothesis test per ED with no correction.
+
+SLIDESHOW NOTES
+  Suggested slide title : Where is the clustering?
+  One-line caption      : Local Moran's I, one test per division: high-with-high in the south, low-with-low in the north.
+  Shape                 : Portrait, 8:9.
+  Sequencing            : Show immediately before the BH-corrected version - the shrinkage between them is the lesson.

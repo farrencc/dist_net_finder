@@ -1,0 +1,44 @@
+TITLE
+  Every mode but one decays; the slowest sets the clock
+
+SOURCE
+  Notebook : graph-workshop/notebooks/session2_instructor.ipynb
+  Cell     : 22
+  Section  : 3 - Diffusion (clock 0:45)
+  Image    : 06-modal-amplitude-decay.png
+
+WHAT IT SHOWS
+  A log-log plot with time on the x axis (about 0.2 to 130) and modal amplitude
+  |c_k * exp(-lambda_k * t)| on the y axis (1e-6 to 1).
+
+  Many pale grey curves - all the higher modes - fall off a cliff early, most of
+  them dropping below 1e-6 within the first decade of time. A thick crimson
+  curve, the lambda_2 mode, stays almost flat through the early period and only
+  bends down late. A black dashed horizontal line at about 0.078 is the
+  lambda_1 = 0 mode: the conserved mean, which never decays at all. A dotted
+  vertical line marks t = 1/lambda_2.
+
+NUMBERS ON THE FIGURE
+  lambda_2 = 0.0609, so tau = 1/lambda_2 is about 16.4.
+  lambda_1 = 0: the conserved mean (flat dashed line).
+
+WHY IT IS HERE
+  The explanation for everything in this section. Write the initial condition in
+  the eigenvector basis and each component simply decays as exp(-lambda_k * t).
+  The lambda_1 = 0 mode never decays, which is conservation of total mass. Every
+  other mode dies, and it dies at a rate set by its own eigenvalue.
+
+  So after a short transient, only one non-trivial mode is left with any
+  amplitude: the lambda_2 mode. Its shape is the Fiedler vector. That is why the
+  late-time diffusion pattern looks like the spectral partition - not by
+  analogy, but because by then it literally is the Fiedler vector, scaled.
+
+  It also justifies the choice of measurement time throughout the capstone.
+  t = 1/lambda_2 is the moment when the slow mode is still alive and everything
+  faster has already gone.
+
+SLIDESHOW NOTES
+  Suggested slide title : Why t = 1/lambda_2 is the natural clock
+  One-line caption      : Fast modes die first; the lambda_2 mode is the last one standing, and its shape is the Fiedler vector.
+  Shape                 : Wide, 10:6. Log-log - keep it large enough to read the axes.
+  Sequencing            : The theory slide between the diffusion snapshots and the Fiedler-boundary reveal.

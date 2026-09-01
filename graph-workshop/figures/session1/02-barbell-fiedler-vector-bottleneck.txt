@@ -1,0 +1,44 @@
+TITLE
+  Fiedler vector of a barbell graph: the gap is the cut
+
+SOURCE
+  Notebook : graph-workshop/notebooks/session1_instructor.ipynb
+  Cell     : 24
+  Section  : 3 - Laplacian (clock 0:20)
+  Image    : 02-barbell-fiedler-vector-bottleneck.png
+
+WHAT IT SHOWS
+  Two panels.
+
+  Left: a barbell(8, 0) graph - two 8-node cliques joined by a single edge -
+  drawn with a spring layout. Nodes are coloured by their entry in the Fiedler
+  vector on a blue-white-red (coolwarm) scale with a colourbar labelled
+  "Fiedler entry". One clique is uniformly deep blue at about -0.25, the other
+  uniformly deep red at about +0.25, and the two bridge nodes sit slightly
+  toward the middle of the scale.
+
+  Right: the same Fiedler entries sorted ascending and plotted as a line with
+  markers, titled "the gap is the cut". The curve is flat at about -0.26 for
+  nodes 0-6, jumps almost vertically through zero between sorted positions 7
+  and 9, then is flat again at about +0.26 for the rest.
+
+NUMBERS ON THE FIGURE
+  barbell(8, 0), lambda_2 = 0.2042
+  16 nodes, two cliques of 8, one bridge edge.
+
+WHY IT IS HERE
+  The single most important picture in Session 1. The Fiedler vector - the
+  eigenvector of the second-smallest Laplacian eigenvalue - assigns each node a
+  number, and the sign of that number partitions the graph exactly at its
+  bottleneck. Nobody told the algorithm where the bridge was.
+
+  The right panel is the honest diagnostic: a plateau, a cliff, a plateau means
+  the split is unambiguous. When that curve is a smooth ramp instead, the graph
+  has no natural two-way cut and the sign split is an arbitrary decision. Read
+  this shape before trusting any spectral partition.
+
+SLIDESHOW NOTES
+  Suggested slide title : The Fiedler vector finds the bottleneck
+  One-line caption      : Colour the nodes by the second eigenvector and the graph falls apart at its weakest edge.
+  Shape                 : Wide, 5:2. Two panels, both essential - do not crop to just the graph.
+  Sequencing            : The hinge of Session 1. Everything after this is a variation on it.

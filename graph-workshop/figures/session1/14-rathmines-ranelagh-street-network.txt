@@ -1,0 +1,38 @@
+TITLE
+  Rathmines / Ranelagh drive network from OpenStreetMap
+
+SOURCE
+  Notebook : graph-workshop/notebooks/session1_instructor.ipynb
+  Cell     : 52
+  Section  : 6 - Geospatial (clock 1:45) - optional cameo, needs osmnx
+  Image    : 14-rathmines-ranelagh-street-network.png
+
+WHAT IT SHOWS
+  An OSMnx street-network plot on a white background: thin dark grey lines for
+  drivable road segments and small crimson dots at every junction, covering the
+  Rathmines and Ranelagh area of south Dublin. Title: "Rathmines / Ranelagh,
+  drive network".
+
+  The texture is immediately different from the contiguity graphs - long
+  through-routes, dense terraced grids in the north-west, and many short
+  dead-end stubs.
+
+NUMBERS ON THE FIGURE
+  414 nodes, 909 edges.
+  Loaded from graph-workshop/data/streets.graphml.
+
+WHY IT IS HERE
+  A 90-second cameo making the point that contiguity is not the only way a map
+  becomes a graph. Here nodes are junctions and edges are road segments, and the
+  same Laplacian, the same eigenvectors and the same centrality measures all
+  apply unchanged.
+
+  The cell is guarded by a HAVE_OSMNX flag and prints a skip message if the
+  import failed, so in a live run this figure may be absent. Treat it as
+  optional in the deck too.
+
+SLIDESHOW NOTES
+  Suggested slide title : Another map, another graph
+  One-line caption      : Junctions and road segments - same machinery, completely different texture.
+  Shape                 : Near square, 8:8.
+  Sequencing            : Optional aside. Safe to drop; nothing else depends on it.

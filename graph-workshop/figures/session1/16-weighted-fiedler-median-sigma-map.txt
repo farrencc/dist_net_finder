@@ -1,0 +1,39 @@
+TITLE
+  Weighted Fiedler vector at sigma = 0.43
+
+SOURCE
+  Notebook : graph-workshop/notebooks/session1_instructor.ipynb
+  Cell     : 58
+  Section  : 7 - Applied: weighted clustering (clock 2:05)
+  Image    : 16-weighted-fiedler-median-sigma-map.png
+
+WHAT IT SHOWS
+  A portrait choropleth on coolwarm, colourbar "weighted Fiedler entry" running
+  about -0.10 to +0.05, titled simply "sigma = 0.43".
+
+  Compared with the geometry-only Fiedler map, the field is no longer a smooth
+  gradient. Red covers the north and north-east in a broad, fairly uniform
+  block; the south-central band sits close to zero in near-neutral grey; and a
+  concentrated deep-blue pocket appears in the far west and south-west - the
+  most distinct area on the map by a clear margin.
+
+NUMBERS ON THE FIGURE
+  SIGMA = 0.428 (median edge difference)
+  Edge weights: min 1.57e-06, median 0.607, max 1.000
+  lambda_2 = 5.433e-03
+
+WHY IT IS HERE
+  The synthesis of the whole session. Edges now carry a weight combining two
+  things at once - adjacency (the edge exists at all) and similarity (how alike
+  the two EDs are). The eigenvector of that weighted Laplacian therefore finds a
+  boundary that is both spatially contiguous and socially meaningful.
+
+  Watch lambda_2. At 5.4e-03 it is small but comfortably non-zero, which is what
+  says the weighted graph is still in one piece and this eigenvector means
+  something. The next figure shows what happens when that stops being true.
+
+SLIDESHOW NOTES
+  Suggested slide title : Now weight the edges by similarity
+  One-line caption      : Adjacency and attribute together - and a distinct western pocket separates out.
+  Shape                 : Portrait, 8:9.
+  Sequencing            : The A to the geometry-only Fiedler map's B. Show them adjacent or in sequence.
