@@ -1,0 +1,47 @@
+TITLE
+  RatioCut vs Ncut: why the normalised Laplacian is the default
+
+SOURCE
+  Notebook : graph-workshop/notebooks/session1_instructor.ipynb
+  Cell     : 31
+  Section  : 4 - Spectral clustering (clock 0:50)
+  Image    : 03-ratiocut-vs-ncut-pendant-graph.png
+
+WHAT IT SHOWS
+  Two panels sharing a y axis, for a graph built as a clique of 12 and a clique
+  of 4 joined by three bridge edges, plus one pendant node hanging off the end.
+  The x axis is the node index 0-16; the y axis is the Fiedler entry, rescaled
+  so the largest magnitude is 1. Blue circles are the clique of 12, orange
+  squares the clique of 4, and a large crimson star is the pendant node.
+
+  Left, "RatioCut relaxation: eigh(L)": the pendant star is pinned at +1.0,
+  far above everything else. The clique of 12 sits in a tight band near +0.1
+  to +0.2 and the clique of 4 near -0.6 to -0.8. The eigenvector's whole
+  dynamic range is spent separating one lonely node from the other sixteen.
+
+  Right, "Ncut relaxation: eigh(L, D)": the pendant star has dropped to about
+  +0.15, back inside the range of the clique of 12. The dominant contrast is
+  now between the two cliques, with the clique of 4 pushed out to -0.8 to
+  -1.0.
+
+NUMBERS ON THE FIGURE
+  Graph: N_BIG = 12, N_SMALL = 4, N_BRIDGE = 3, plus one pendant node.
+  Both vectors are scaled to unit maximum and sign-fixed on the pendant so the
+  two panels can be compared directly.
+
+WHY IT IS HERE
+  RatioCut balances a partition by counting nodes, so slicing off a single
+  pendant node is a cheap cut and the unnormalised eigenvector goes chasing it.
+  Ncut balances by volume (degree sum), so a degree-1 node carries almost no
+  weight and stops dominating.
+
+  This is the concrete reason scikit-learn, and most practice, uses the
+  normalised Laplacian: real graphs are full of low-degree stragglers, and an
+  algorithm that keeps proposing to cut them off is useless. The generalised
+  eigenproblem eigh(L, D) is the entire fix.
+
+SLIDESHOW NOTES
+  Suggested slide title : One dangling node hijacks the unnormalised cut
+  One-line caption      : RatioCut counts nodes and finds the pendant; Ncut counts degree and finds the real split.
+  Shape                 : Wide, 5:2. Legend sits bottom-left of the first panel.
+  Sequencing            : Immediately before any use of eigh(L, D) elsewhere in the deck.

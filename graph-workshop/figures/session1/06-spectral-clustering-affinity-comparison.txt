@@ -1,0 +1,43 @@
+TITLE
+  Three spectral clusterings of two moons: the affinity is the model
+
+SOURCE
+  Notebook : graph-workshop/notebooks/session1_instructor.ipynb
+  Cell     : 35
+  Section  : 4 - Spectral clustering (clock 0:50)
+  Image    : 06-spectral-clustering-affinity-comparison.png
+
+WHAT IT SHOWS
+  Three scatter panels of the same two-moons data, sharing axes.
+
+  Panel 1, "by hand": the hand-built 12-NN pipeline. The split follows the two
+  crescents.
+
+  Panel 2, 'affinity="nearest_neighbors"': sklearn's SpectralClustering with a
+  kNN affinity. Same partition as panel 1, with the two colours swapped -
+  cluster labels are arbitrary, the partition is what matters.
+
+  Panel 3, 'affinity="rbf"  (the default)': the boundary no longer follows the
+  crescents. It cuts across them, and the left tip of the lower moon is grouped
+  with the upper moon instead of with the rest of its own crescent.
+
+NUMBERS ON THE FIGURE
+  n_neighbors = 12 for the kNN affinity; the rbf panel uses sklearn's default
+  gamma. random_state = 7 throughout.
+
+WHY IT IS HERE
+  The graph you build is the modelling decision, and it is made before any
+  eigenvector is computed. A kNN affinity only connects points to their local
+  neighbours, so it follows the shape of the manifold. A global RBF kernel at a
+  default bandwidth connects everything to everything with a smoothly decaying
+  weight, which quietly reintroduces the straight-line geometry that spectral
+  clustering was supposed to escape.
+
+  Practical warning to deliver with it: rbf is the default, so this is the
+  behaviour you get if you never pass an affinity argument.
+
+SLIDESHOW NOTES
+  Suggested slide title : Same algorithm, three graphs, different answers
+  One-line caption      : Spectral clustering is only as good as the graph you hand it - and the default is not always the right graph.
+  Shape                 : Wide, 25:8. Three panels side by side.
+  Sequencing            : Closes the two-moons run before returning to real data.

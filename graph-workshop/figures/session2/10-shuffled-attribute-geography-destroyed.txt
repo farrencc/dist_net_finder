@@ -1,0 +1,52 @@
+TITLE
+  Control: shuffle the values and the structure disappears
+
+SOURCE
+  Notebook : graph-workshop/notebooks/session2_instructor.ipynb
+  Cell     : 40
+  Section  : 4 - Capstone, Angle B (clock 1:35) - instructor only
+  Image    : 10-shuffled-attribute-geography-destroyed.png
+
+WHAT IT SHOWS
+  A 2x2 grid of maps.
+
+  Top-left, "attribute": the real third-level education values on viridis -
+  smooth, spatially coherent, high in the south.
+  Top-right, "attribute, shuffled": the identical set of values randomly
+  reassigned across EDs. Salt-and-pepper, no spatial structure whatsoever.
+  Bottom-left, "weighted clusters" (Set2 teal/grey): the real weighted Fiedler
+  split - a coherent southern teal region against a northern grey one.
+  Bottom-right, "weighted clusters, shuffled": the same pipeline on the shuffled
+  values. It still returns two clusters, but teal now sprawls across most of the
+  map with grey confined to the north-east - a lopsided split with no
+  interpretable boundary.
+
+NUMBERS ON THE FIGURE
+  Moran's I   before +0.7176 (p = 0.001)   after -0.0392 (p = 0.248)
+  cluster sizes before [66, 96]           after [128, 34]
+
+  Same values, same map, same sigma - only the pairing between value and place
+  was permuted.
+
+WHY IT IS HERE
+  The control experiment, and the most transferable idea in either session.
+
+  Destroying the geography does exactly what it should to the statistic: Moran's
+  I collapses from +0.72 to -0.04 and stops being significant. The test knows
+  the structure is gone.
+
+  The clustering does not know. It returns two clusters, because that is what it
+  was asked for and it will always return two clusters - on real data, on
+  shuffled data, on noise. The only signals that anything is wrong are indirect:
+  the split is badly unbalanced at [128, 34] where the real one was [66, 96],
+  and the resulting regions answer to nothing.
+
+  The general lesson to close on: an algorithm that always produces an answer
+  tells you nothing by producing one. The null is what makes the answer mean
+  something, which is why the capstone was built around one.
+
+SLIDESHOW NOTES
+  Suggested slide title : The algorithm always answers - the null tells you if it means anything
+  One-line caption      : Same values, shuffled across the map: Moran's I collapses, and the clustering carries on regardless.
+  Shape                 : Square-ish 2x2 grid, 13:14. Show large; four maps need room.
+  Sequencing            : Final substantive slide of Session 2, before the wrap-up.

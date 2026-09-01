@@ -1,0 +1,48 @@
+TITLE
+  Explicit Euler, either side of the stability threshold
+
+SOURCE
+  Notebook : graph-workshop/notebooks/session2_instructor.ipynb
+  Cell     : 24
+  Section  : 3 - Diffusion (clock 0:45)
+  Image    : 07-explicit-euler-stability-threshold.png
+
+WHAT IT SHOWS
+  A semi-log plot, Euler step number 0-400 on the x axis and max_i |u_i| on a
+  logarithmic y axis.
+
+  The blue solid curve, at dt = 0.90 x 2/lambda_max, drops quickly and then
+  settles into a slow, smooth decay toward about 6e-3 - correct behaviour for a
+  diffusion that is spreading mass out.
+
+  The orange dashed curve, at dt = 1.01 x 2/lambda_max, tracks the blue one for
+  about 25 steps, then turns around and grows steadily - with a visible
+  sawtooth oscillation - reaching about 2e1 by step 400. On a log axis that
+  straight upward line is exponential blow-up.
+
+NUMBERS ON THE FIGURE
+  lambda_max     = 12.626
+  2 x max degree = 22        (the bound lambda_max cannot exceed)
+  stable dt      < 0.1584    (= 2/lambda_max)
+
+  The two runs differ by 1%: 0.90x versus 1.01x the threshold.
+
+WHY IT IS HERE
+  A short, sharp numerical-methods warning. Explicit Euler on du/dt = -Lu is
+  stable only when dt < 2/lambda_max, and the failure at 1% over the line is not
+  a gentle loss of accuracy - it is exponential divergence, with the
+  step-to-step oscillation that identifies this specific instability.
+
+  The practical takeaway is the cheap bound: lambda_max can never exceed twice
+  the maximum degree, so a safe step size is available from the graph without
+  computing a single eigenvalue.
+
+  The instructor notes warn explicitly that this cell will overrun if it becomes
+  a lecture on numerical integration. Show the threshold, show the blow-up, move
+  on.
+
+SLIDESHOW NOTES
+  Suggested slide title : 1% over the threshold is not 1% wrong
+  One-line caption      : dt below 2/lambda_max decays; 1% above it diverges exponentially.
+  Shape                 : Wide, 9:5.5.
+  Sequencing            : Short technical aside. Time-box it.

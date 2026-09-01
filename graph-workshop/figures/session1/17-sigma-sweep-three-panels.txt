@@ -1,0 +1,53 @@
+TITLE
+  Sigma sweep: the same computation, three answers
+
+SOURCE
+  Notebook : graph-workshop/notebooks/session1_instructor.ipynb
+  Cell     : 59
+  Section  : 7 - Applied: weighted clustering (clock 2:05)
+  Image    : 17-sigma-sweep-three-panels.png
+
+WHAT IT SHOWS
+  Three portrait maps in a row, all coolwarm, under the figure title
+  "large sigma: weights all near 1, pure geography.  small sigma: every edge
+  cut."
+
+  Left, sigma = 4.28 (10x the median): a smooth blue-to-red gradient from the
+  north-east to the south-west - visibly the same picture as the unweighted,
+  geometry-only Fiedler map. The attribute has been weighted out of existence.
+
+  Centre, sigma = 0.43 (the median): the balanced result - red north, neutral
+  south-central band, deep blue western pocket.
+
+  Right, sigma = 0.17 (0.4x the median): almost the entire map saturates to a
+  single red, with one small blue pocket left in the west. The contrast has
+  collapsed.
+
+NUMBERS ON THE FIGURE
+  sigma = 4.28, lambda_2 = 1.1e-02
+  sigma = 0.43, lambda_2 = 5.4e-03
+  sigma = 0.17, lambda_2 = 2.6e-06   <- six orders of magnitude down
+
+  0.4x rather than 0.1x is deliberate: below about 0.3x the median, this graph
+  separates into components outright and lambda_2 goes to zero.
+
+WHY IT IS HERE
+  The methodological warning of Session 1, and the best slide in the deck for
+  making it stick. Sigma is not a detail, it is the model.
+
+  Too large and every weight approaches 1, the attribute is ignored and you have
+  computed pure geography with extra steps. Too small and nearly every edge is
+  driven to zero, the weighted graph falls apart, and lambda_2 collapses toward
+  zero - at which point the "second eigenvector" is an essentially arbitrary
+  vector drawn from a near-null space. The right-hand map is not a result. It is
+  noise that happens to be plausible-looking, which is far more dangerous than
+  noise that looks like noise.
+
+  The defence is the printed number, not the picture: watch lambda_2, and
+  disbelieve any map whose lambda_2 has collapsed.
+
+SLIDESHOW NOTES
+  Suggested slide title : Sigma is the model, not a detail
+  One-line caption      : Too big and you get geography back; too small and lambda_2 collapses - the map still looks fine and means nothing.
+  Shape                 : Very wide, 16:5.6. Three portrait maps side by side.
+  Sequencing            : The cautionary climax of Session 1. Give it its own slide and its own minute.

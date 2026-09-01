@@ -1,0 +1,39 @@
+TITLE
+  Two moons: k-means can only draw a straight line
+
+SOURCE
+  Notebook : graph-workshop/notebooks/session1_instructor.ipynb
+  Cell     : 32
+  Section  : 4 - Spectral clustering (clock 0:50)
+  Image    : 04-two-moons-kmeans-failure.png
+
+WHAT IT SHOWS
+  Two scatter panels sharing axes, 400 points from sklearn's make_moons with
+  noise 0.10 - two interlocking crescents.
+
+  Left, "two moons": points coloured by their true label, blue for the upper
+  crescent, red for the lower one.
+
+  Right, "k-means: a straight line, and it cannot help it": the same points
+  coloured by a 2-cluster k-means fit. The boundary is a near-vertical straight
+  line around x = 0.5 that slices both crescents in half, so each cluster is
+  half of one moon and half of the other.
+
+NUMBERS ON THE FIGURE
+  400 points, noise = 0.10, random_state = 7.
+  KMeans(n_clusters=2, n_init=10).
+
+WHY IT IS HERE
+  Sets up the problem spectral clustering exists to solve. k-means assigns each
+  point to the nearest centroid, so its decision boundaries are always straight
+  - the cells of a Voronoi diagram. Interlocking, non-convex shapes are not
+  merely hard for it, they are outside what it can express.
+
+  The phrase in the panel title matters: "and it cannot help it". This is not a
+  tuning failure or a bad initialisation, it is the model class.
+
+SLIDESHOW NOTES
+  Suggested slide title : Where k-means runs out of road
+  One-line caption      : Two crescents, one straight boundary: k-means splits both moons down the middle.
+  Shape                 : Wide, 12:5. Reads fine at any size.
+  Sequencing            : Immediately before the spectral embedding figure - they are a matched pair.

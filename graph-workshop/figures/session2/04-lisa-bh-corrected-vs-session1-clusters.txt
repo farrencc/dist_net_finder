@@ -1,0 +1,51 @@
+TITLE
+  BH-corrected LISA beside the Session 1 weighted clusters
+
+SOURCE
+  Notebook : graph-workshop/notebooks/session2_instructor.ipynb
+  Cell     : 15
+  Section  : 2 - Moran's I (clock 0:10)
+  Image    : 04-lisa-bh-corrected-vs-session1-clusters.png
+
+WHAT IT SHOWS
+  Two panels.
+
+  Left, "LISA, BH-corrected": the same local Moran's I results after a
+  Benjamini-Hochberg correction, drawn categorically on Set1 - HH red, LH
+  purple, LL brown, not significant grey. Far fewer EDs survive than in the
+  uncorrected map: a compact red HH region in the south, scattered brown LL
+  patches across the north and north-west and one in the far west, and a thin
+  purple LH strip along the docklands. The grey not-significant majority has
+  grown noticeably.
+
+  Right, "Session 1 weighted clusters, sigma = 0.43": yesterday's weighted
+  Fiedler split, teal for the southern region and grey for the north.
+
+  The red HH region on the left and the teal region on the right cover
+  substantially the same ground.
+
+NUMBERS ON THE FIGURE
+  Benjamini-Hochberg applied across all 162 local tests at alpha = 0.05.
+  Compare directly against the uncorrected p < 0.05 map.
+
+WHY IT IS HERE
+  Two points, deliberately placed side by side.
+
+  First, multiple comparisons. 162 local tests at alpha = 0.05 will hand you
+  roughly eight false positives even on pure noise. Benjamini-Hochberg controls
+  the false discovery rate, and the visible shrinkage against the previous
+  figure is what that correction costs - and what the uncorrected map was
+  quietly overstating.
+
+  Second, convergence. Two methods with almost nothing in common - a
+  permutation test on local spatial autocorrelation, and an eigenvector of a
+  similarity-weighted graph Laplacian - independently identify the same division
+  of the city. Neither validates the other formally, but agreement between
+  unrelated methods is real evidence, and it is the reason the capstone treats
+  the Session 1 boundary as worth testing.
+
+SLIDESHOW NOTES
+  Suggested slide title : Correct for multiple tests - then compare with yesterday
+  One-line caption      : BH shrinks the significant set, and what survives lines up with the weighted graph cut.
+  Shape                 : Wide, 15:8. Two portrait maps side by side.
+  Sequencing            : Directly after the uncorrected LISA map. Bridges Session 1 and the capstone.

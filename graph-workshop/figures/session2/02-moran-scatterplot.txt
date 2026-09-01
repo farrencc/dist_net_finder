@@ -1,0 +1,41 @@
+TITLE
+  The Moran scatterplot: I is a regression slope
+
+SOURCE
+  Notebook : graph-workshop/notebooks/session2_instructor.ipynb
+  Cell     : 12
+  Section  : 2 - Moran's I (clock 0:10) - optional, marked cut-first
+  Image    : 02-moran-scatterplot.png
+
+WHAT IT SHOWS
+  A near-square scatter with the standardised attribute z on the x axis and its
+  spatial lag - the row-standardised average of z over each ED's neighbours - on
+  the y axis. Points are pale grey. Dashed grey lines at x = 0 and y = 0 divide
+  the plane into four quadrants, and a salmon regression line runs through the
+  origin. A crimson annotation reads "slope = I = 0.718".
+
+  The cloud is clearly elongated along the fitted line, with most points in the
+  upper-right and lower-left quadrants.
+
+NUMBERS ON THE FIGURE
+  Regression slope = Moran's I = 0.718.
+  Quadrants: upper-right HH, lower-left LL, upper-left LH, lower-right HL.
+
+WHY IT IS HERE
+  Demystifies the formula. Moran's I is not an exotic spatial statistic - it is
+  the slope of a plain regression of a place's neighbourhood average on the
+  place's own value. Positive slope means high values sit near high values.
+
+  The quadrants are load-bearing for the next figure: they are exactly the four
+  LISA categories. A point far out along the upper-right diagonal is an HH
+  cluster member; a point stranded in the lower-right is a high value marooned
+  among low neighbours.
+
+  The notebook marks this cut-first - the permutation histogram has already made
+  the argument.
+
+SLIDESHOW NOTES
+  Suggested slide title : Moran's I is just a slope
+  One-line caption      : Each place against its neighbourhood average; the fit is I, and the quadrants are the LISA types.
+  Shape                 : Near square, 7.5:7.
+  Sequencing            : Optional. Keep it if you intend to dwell on the LISA quadrant labels.

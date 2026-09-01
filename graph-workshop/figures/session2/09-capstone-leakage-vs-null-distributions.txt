@@ -1,0 +1,56 @@
+TITLE
+  Capstone: does the Session 1 boundary actually hold anything back?
+
+SOURCE
+  Notebook : graph-workshop/notebooks/session2_instructor.ipynb
+  Cell     : 37
+  Section  : 4 - Capstone, worked solution (clock 1:35) - instructor only
+  Image    : 09-capstone-leakage-vs-null-distributions.png
+
+WHAT IT SHOWS
+  Two histogram panels sharing a y axis. The x axis is "mass on the far side"
+  - how much of the diffused unit mass has crossed the boundary by
+  t = 1/lambda_2 - and the y axis counts draws from the null.
+
+  Each panel carries two nulls. The pale grey histogram is the scattered-labels
+  null: tight and roughly normal. The dark grey histogram is the
+  contiguous-regions null: much broader, left-skewed, with a long right tail. A
+  thick crimson vertical line marks the observed value.
+
+  Left, "weighted boundary (rank 0 of 1999)": observed 0.3235, sitting at the
+  extreme left edge, below every one of the 1999 contiguous draws.
+  Right, "unweighted boundary (rank 0 of 1999)": observed about 0.487, again
+  clear of everything in both nulls.
+
+NUMBERS ON THE FIGURE
+  DRAWS = 1999 for each null.
+  Weighted boundary   : observed 0.3235, rank 0 of 1999
+  Unweighted boundary : observed ~0.487, rank 0 of 1999
+  Rank 0 gives p = 1/2000 = 0.0005 - the smallest value this null can report.
+
+WHY IT IS HERE
+  The worked capstone, and the methodological heart of Session 2.
+
+  The measurement: release unit mass at the highest-betweenness ED, diffuse to
+  t = 1/lambda_2, and sum whatever ended up on the far side of the Session 1
+  boundary. Less mass crossing means the boundary held more back.
+
+  The nulls are the real lesson, and the two are deliberately different in
+  quality. Scattering the labels randomly produces no boundary at all, so almost
+  any real division beats it - it is far too easy, which is precisely why it is
+  shown. Growing random contiguous regions of the same size is the honest
+  comparison: a genuine boundary, but an arbitrary one.
+
+  Both Session 1 boundaries beat all 1999 contiguous draws. Rank 0 of 1999 is a
+  clear win, and note that the weighted boundary holds back more (0.32 crossing)
+  than the geometry-only one (0.49) - the attribute weighting bought real
+  containment, not just a prettier map.
+
+  Also worth saying: p = 0.0005 is the floor of this test, not a precise
+  estimate. The correct claim is "better than every draw we took".
+
+SLIDESHOW NOTES
+  Suggested slide title : Rank 0 of 1999
+  One-line caption      : Both boundaries hold back more heat than every random contiguous region of the same size.
+  Shape                 : Wide, 14:5.5.
+  Sequencing            : The Session 2 result slide. Everything before it was setup.

@@ -1,0 +1,46 @@
+TITLE
+  Heat diffusion across the city, five snapshots
+
+SOURCE
+  Notebook : graph-workshop/notebooks/session2_instructor.ipynb
+  Cell     : 21
+  Section  : 3 - Diffusion (clock 0:45)
+  Image    : 05-diffusion-snapshots-five-times.png
+
+WHAT IT SHOWS
+  Five small portrait maps in a row on the inferno colormap - black through
+  purple and orange to pale yellow - titled t = 0.02*tau, 0.05*tau, 0.12*tau,
+  0.30*tau and 1.00*tau, where tau = 1/lambda_2. The source ED is outlined in
+  cyan, sitting just north of the river in the centre-east; it is the
+  highest-betweenness division from Session 1.
+
+  At 0.02*tau only the immediate neighbours are lit and the rest of the city is
+  black. By 0.12*tau a bright halo has grown around the source. By 0.30*tau and
+  1.00*tau the north and north-east are broadly bright, while the south-west
+  stays conspicuously dark even at the latest time.
+
+  Each panel is normalised to its own maximum, so these show where the front
+  has reached, not how much is left.
+
+NUMBERS ON THE FIGURE
+  Shock released at the highest-betweenness ED (betweenness rank 1 of 162).
+  tau = 1/lambda_2. Times shown: 0.02, 0.05, 0.12, 0.30 and 1.00 tau.
+  Total mass is conserved at 1 throughout - each panel is separately rescaled.
+
+WHY IT IS HERE
+  Introduces the graph heat equation du/dt = -Lu, solved exactly by
+  eigendecomposition rather than stepped numerically. The same Laplacian that
+  produced a partition now produces a dynamics.
+
+  Flag the per-panel normalisation explicitly or the sequence is misread as mass
+  being created - the totals are all 1.
+
+  The real payload is the dark south-west at late times. The front is not simply
+  radiating outward at an even rate; something is holding it up on one side, and
+  the next two figures name what.
+
+SLIDESHOW NOTES
+  Suggested slide title : Release a shock at the best-connected division
+  One-line caption      : Unit mass at the busiest ED - and even at t = 1/lambda_2 the south-west stays dark.
+  Shape                 : Very wide, 20:5.5. Five portrait panels; needs full width.
+  Sequencing            : Opens the diffusion section. Sets up the Fiedler-boundary reveal.

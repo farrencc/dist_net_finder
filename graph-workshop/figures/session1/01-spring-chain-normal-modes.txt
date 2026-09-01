@@ -1,0 +1,43 @@
+TITLE
+  Normal modes of a free-free spring chain (n = 6)
+
+SOURCE
+  Notebook : graph-workshop/notebooks/session1_instructor.ipynb
+  Cell     : 10
+  Section  : 2 - Eigenvector refresher (clock 0:10)
+  Image    : 01-spring-chain-normal-modes.png
+
+WHAT IT SHOWS
+  A 2x3 grid of stem plots sharing both axes, under the figure title
+  "Free-free chain, n = 6: sign changes count the mode number". Each panel is
+  one eigenvector of the 6x6 stiffness matrix K of six unit masses joined by
+  five unit springs, with no spring to ground. The x axis is the mass index
+  0-5, the y axis is displacement, and a thin grey line marks zero.
+
+  Reading across: mode 0 is perfectly flat, all six stems at about +0.41.
+  Mode 1 is a single monotone ramp from +0.56 down to -0.56, crossing zero
+  once. Each subsequent mode adds one more sign change, and mode 5 alternates
+  from one mass to the next.
+
+NUMBERS ON THE FIGURE
+  mode 0: lambda = 0.000     mode 3: lambda = 2.000
+  mode 1: lambda = 0.268     mode 4: lambda = 3.000
+  mode 2: lambda = 1.000     mode 5: lambda = 3.732
+
+  These match the closed form 2 - 2*cos(pi*k/n) to about 1e-15.
+
+WHY IT IS HERE
+  This is the mechanical intuition the whole workshop is built on, introduced
+  before the word "Laplacian" is used. The number of sign changes counts the
+  mode number, and the lambda = 0 mode is rigid translation of the whole chain
+  - nothing is stretched, so nothing costs energy.
+
+  The payoff lands two sections later: the stiffness matrix of this spring
+  chain is exactly the Laplacian of a 6-node path graph. Every eigenvector
+  picture here is already a graph picture.
+
+SLIDESHOW NOTES
+  Suggested slide title : Eigenvectors, before we call them that
+  One-line caption      : Six masses, five springs: the k-th mode changes sign k times, and the flat mode costs nothing.
+  Shape                 : Wide, roughly 2:1. Six small panels - needs to be shown large or it turns to mush.
+  Sequencing            : Opening technical slide. Everything spectral follows from this one.

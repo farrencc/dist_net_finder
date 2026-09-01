@@ -1,0 +1,44 @@
+TITLE
+  Attribute differences across contiguity edges: where sigma comes from
+
+SOURCE
+  Notebook : graph-workshop/notebooks/session1_instructor.ipynb
+  Cell     : 56
+  Section  : 7 - Applied: weighted clustering (clock 2:05)
+  Image    : 15-edge-attribute-difference-histogram.png
+
+WHAT IT SHOWS
+  A single grey 30-bin histogram. The x axis is |z_i - z_j|, the absolute
+  difference in standardised third-level education between the two ends of a
+  contiguity edge; the y axis counts edges.
+
+  The shape is strongly right-skewed: a tall block of about 46-51 edges in the
+  first two bins, a steady decline through the middle, and a thin tail running
+  out past 2.0. Most neighbouring EDs are fairly similar; a minority differ
+  sharply.
+
+NUMBERS ON THE FIGURE
+  462 contiguity edges.
+    10th percentile : 0.076
+    25th percentile : 0.180
+    50th percentile : 0.428   <- becomes the default SIGMA
+    75th percentile : 0.796
+    90th percentile : 1.334
+    max             : 2.211
+
+WHY IT IS HERE
+  The unglamorous but essential slide. The Gaussian similarity
+  exp(-(z_i - z_j)^2 / 2*sigma^2) needs a scale, and sigma cannot be guessed
+  from nothing - it has to be read off the distribution of differences that
+  actually occur on this graph.
+
+  The notebook takes the median, 0.428, as the default. The tall left-hand bars
+  are the reason the weighting does something useful: most edges will keep a
+  weight near 1, while the long-tailed minority get pushed toward zero. Those
+  few heavily-penalised edges are where the boundary will form.
+
+SLIDESHOW NOTES
+  Suggested slide title : Pick sigma from the data, not from thin air
+  One-line caption      : Most neighbours are alike; the tail is where the boundary will end up.
+  Shape                 : Wide and short, 8:4.2.
+  Sequencing            : Immediately before any weighted map. It justifies the number in every later title.

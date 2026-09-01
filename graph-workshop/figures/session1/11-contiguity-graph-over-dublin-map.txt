@@ -1,0 +1,39 @@
+TITLE
+  The graph and the map are the same object
+
+SOURCE
+  Notebook : graph-workshop/notebooks/session1_instructor.ipynb
+  Cell     : 49
+  Section  : 6 - Geospatial (clock 1:45)
+  Image    : 11-contiguity-graph-over-dublin-map.png
+
+WHAT IT SHOWS
+  A single large panel with three layers stacked: the ED polygons in light grey
+  with slightly darker outlines; the Queen contiguity graph drawn over them as
+  dark grey edges; and one circular node per ED at its representative point,
+  outlined in black and filled by the third-level education value on viridis -
+  dark purple through teal and green to yellow.
+
+  The title is the message: "the graph and the map are the same object". Long
+  edges reach across the river and out to the coastal spit where EDs are large
+  or awkwardly shaped.
+
+NUMBERS ON THE FIGURE
+  162 nodes (one per ED), 462 Queen contiguity edges.
+  Node colour is the same attribute and colormap as the choropleth figure.
+
+WHY IT IS HERE
+  The conceptual pivot of Session 1. On the left half of the workshop the
+  examples were abstract graphs - a spring chain, a barbell, two moons. Here the
+  census map is redrawn as a network with values on the nodes, and from this
+  slide onward every graph algorithm in the workshop applies to Dublin without
+  modification.
+
+  Say it plainly when this is on screen: nothing new is being computed, the same
+  data is being looked at a second way.
+
+SLIDESHOW NOTES
+  Suggested slide title : The map is a graph
+  One-line caption      : Nodes are electoral divisions, edges are shared borders, colour is the census attribute.
+  Shape                 : Portrait-ish, 9.5:10.5. Detail-heavy - show this one full-bleed.
+  Sequencing            : The transition slide. Good candidate for a full-screen moment with no other content.
