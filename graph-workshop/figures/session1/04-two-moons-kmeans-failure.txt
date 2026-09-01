@@ -14,7 +14,7 @@ WHAT IT SHOWS
   Left, "two moons": points coloured by their true label, blue for the upper
   crescent, red for the lower one.
 
-  Right, "k-means: a straight line, and it cannot help it": the same points
+  Right, "k-means: the boundary can only be a straight line": the same points
   coloured by a 2-cluster k-means fit. The boundary is a near-vertical straight
   line around x = 0.5 that slices both crescents in half, so each cluster is
   half of one moon and half of the other.

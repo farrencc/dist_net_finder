@@ -18,7 +18,7 @@ WHAT IT SHOWS
   purple LH strip along the docklands. The grey not-significant majority has
   grown noticeably.
 
-  Right, "Session 1 weighted clusters, sigma = 0.43": yesterday's weighted
+  Right, "Session 1 weighted clusters, sigma = 0.43": the Session 1 weighted
   Fiedler split, teal for the southern region and grey for the north.
 
   The red HH region on the left and the teal region on the right cover
@@ -45,7 +45,7 @@ WHY IT IS HERE
   the Session 1 boundary as worth testing.
 
 SLIDESHOW NOTES
-  Suggested slide title : Correct for multiple tests - then compare with yesterday
+  Suggested slide title : Correct for multiple tests, then compare with Session 1
   One-line caption      : BH shrinks the significant set, and what survives lines up with the weighted graph cut.
   Shape                 : Wide, 15:8. Two portrait maps side by side.
   Sequencing            : Directly after the uncorrected LISA map. Bridges Session 1 and the capstone.

@@ -6,8 +6,8 @@ notebooks are what the room runs alongside them.
 Everything is built on one object, the graph Laplacian `L = D - A`. It arrives in the
 first half hour of Session 1 and every later topic — cuts, clustering, community
 detection, spatial autocorrelation, diffusion — is another thing you do with it. One
-graph, the 162 Electoral Divisions of Dublin City, survives from 1:45 on day one to the
-end of day two.
+graph, the 162 Electoral Divisions of Dublin City, survives from 1:45 in Session 1 to
+the end of Session 2.
 
 ## Layout
 
@@ -85,7 +85,7 @@ reprojection, the attribute's range and skew, the node and edge counts, connecti
 the street network size. Overpass rate-limits aggressively; the street fetch retries with
 backoff.
 
-## Day one
+## Session 1
 
 | | | |
 |---|---|---|
@@ -101,7 +101,7 @@ backoff.
 Students type nothing until section 7. Section 7 has exactly one knob, `SIGMA`, isolated
 in its own cell.
 
-## Day two
+## Session 2
 
 | | | |
 |---|---|---|

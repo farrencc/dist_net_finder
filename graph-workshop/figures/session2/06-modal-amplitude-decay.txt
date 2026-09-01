@@ -1,5 +1,5 @@
 TITLE
-  Every mode but one decays; the slowest sets the clock
+  Every mode decays except lambda_1, and lambda_2 decays slowest
 
 SOURCE
   Notebook : graph-workshop/notebooks/session2_instructor.ipynb

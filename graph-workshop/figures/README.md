@@ -62,7 +62,7 @@ and where the figure belongs in a sequence).
 | 03 | `lisa-cluster-map` | Where the clustering is: HH in the south, LL in the north |
 | 04 | `lisa-bh-corrected-vs-session1-clusters` | Correcting for 162 tests — and the agreement with Session 1 |
 | 05 | `diffusion-snapshots-five-times` | A shock spreads from the busiest ED; the south-west stays dark |
-| 06 | `modal-amplitude-decay` | Every mode but one decays; the slowest sets the clock at t = 1/lambda_2 |
+| 06 | `modal-amplitude-decay` | Every mode decays except lambda_1, and lambda_2 decays slowest |
 | 07 | `explicit-euler-stability-threshold` | 1% over dt = 2/lambda_max and explicit Euler diverges exponentially |
 | 08 | `diffusion-with-fiedler-boundary` | The heat front stalls exactly on the spectral boundary |
 | 09 | `capstone-leakage-vs-null-distributions` | Both boundaries beat all 1999 contiguous null draws — rank 0 |
