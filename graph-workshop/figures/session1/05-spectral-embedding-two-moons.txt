@@ -16,7 +16,7 @@ WHAT IT SHOWS
   colours now follow the crescents correctly, red for the upper moon and blue
   for the lower.
 
-  Right, "embedded coordinates: two points": the same 400 points plotted with
+  Right, "embedded coordinates": the same 400 points plotted with
   eigenvector 1 on the x axis and eigenvector 2 on the y axis. They no longer
   look like moons at all - they collapse onto two tight, nearly collinear
   streaks with a clear empty gap between them, red at the lower left and blue

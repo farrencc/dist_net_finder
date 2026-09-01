@@ -14,7 +14,7 @@ WHAT IT SHOWS
   outlined in black and filled by the third-level education value on viridis -
   dark purple through teal and green to yellow.
 
-  The title is the message: "the graph and the map are the same object". Long
+  The title is the message: "Queen contiguity graph drawn on its own polygons". Long
   edges reach across the river and out to the coastal spit where EDs are large
   or awkwardly shaped.
 

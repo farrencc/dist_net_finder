@@ -9,7 +9,7 @@ SOURCE
 
 WHAT IT SHOWS
   Three portrait maps in a row, all coolwarm, under the figure title
-  "large sigma: weights all near 1, pure geography.  small sigma: every edge
+  "large sigma: weights near 1, pure geography.   small sigma: every edge
   cut."
 
   Left, sigma = 4.28 (10x the median): a smooth blue-to-red gradient from the

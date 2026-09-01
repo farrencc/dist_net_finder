@@ -1,5 +1,5 @@
 TITLE
-  Fiedler vector of a barbell graph: the gap is the cut
+  Fiedler vector of a barbell graph: the jump in the sorted entries is the cut
 
 SOURCE
   Notebook : graph-workshop/notebooks/session1_instructor.ipynb
@@ -18,7 +18,7 @@ WHAT IT SHOWS
   toward the middle of the scale.
 
   Right: the same Fiedler entries sorted ascending and plotted as a line with
-  markers, titled "the gap is the cut". The curve is flat at about -0.26 for
+  markers, titled "sorted Fiedler entries". The curve is flat at about -0.26 for
   nodes 0-6, jumps almost vertically through zero between sorted positions 7
   and 9, then is flat again at about +0.26 for the rest.
 
