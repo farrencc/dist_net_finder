@@ -52,7 +52,8 @@ layer alone for anything that needs the 400 kV backbone to be whole.
 | `plots.py` | Maps — the national one and one per analysis area. |
 | `analysis.py` | The five measurements FINDINGS.md is built on. |
 | `extract_web_data.py`, `extract_web_base.py`, `build_web_map.py` | The interactive Leaflet map of the distribution layer. |
-| `test_network.py` | Regression tests, mostly guarding things that would silently move a published number. |
+| `psse.py` | EirGrid's TYTFS 2024 PSS/E v35 load-flow cases: a raw-format reader returning one DataFrame per section. See [docs/PHASE1_PARSER.md](docs/PHASE1_PARSER.md). |
+| `test_network.py`, `test_psse.py` | Regression tests, mostly guarding things that would silently move a published number. |
 
 ## Running it
 
