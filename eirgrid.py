@@ -338,9 +338,6 @@ def run_summary() -> None:
     print("schematic. The national map draws the in-service subset.")
 
 
-COMMANDS = {"fetch": run_fetch, "summary": run_summary}
-
-
 def main(argv=None) -> None:
     p = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     sub = p.add_subparsers(dest="cmd", required=True)

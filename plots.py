@@ -37,7 +37,6 @@ import geopandas as gpd
 import matplotlib
 matplotlib.use("Agg")   # must precede the pyplot import: no display here
 import matplotlib.pyplot as plt
-import pandas as pd
 from matplotlib.lines import Line2D
 
 import eirgrid
