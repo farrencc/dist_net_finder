@@ -7,3 +7,4 @@ shapely
 pyogrio
 numpy
 pandas
+osmium
