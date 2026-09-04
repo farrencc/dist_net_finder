@@ -12,6 +12,16 @@ redrawing of it.  The check that it is: summing the geometry gives 5,348 km of
 overhead line and 774 km of cable, 6,122 km in total, against EirGrid's
 published "6,500 km of overhead line and underground cable".
 
+One documented gap, because the aggregate agreement hides it.  The 400 kV
+layer holds a single overhead circuit, MONEYPOINT-OLDSTREET, 103 km spanning
+longitude -9.42 to -8.27 - the western leg only.  Ireland's 400 kV network
+continues east from Oldstreet to Dunstown in Kildare and on to Woodland in
+Meath (EirGrid's own "Dunstown-Moneypoint 400 kV Refurbishment" names the
+full route), and no circuit for those legs exists in this service at any
+voltage.  400 kV is a small share of the total, so this barely moves the
+headline figure, but anything that depends on the 400 kV backbone being whole
+should not use this layer alone.  ``summary`` prints the warning.
+
 The service is native EPSG:2157 - the same Irish Transverse Mercator the
 OpenStreetMap side of this repo uses - so nothing is reprojected.
 
@@ -336,6 +346,19 @@ def run_summary() -> None:
     print("Transmission Development Plan service, so agreement to within a few")
     print("per cent is the check that this is the asset register and not a")
     print("schematic. The national map draws the in-service subset.")
+
+    ohl400 = everything[(everything["kv"] == 400)
+                        & (everything["category"] == "Overhead Line")]
+    circuits = sorted(ohl400["circuit"].dropna().unique())
+    if len(circuits) <= 1:
+        print()
+        print(f"WARNING: the 400 kV overhead layer holds {len(circuits)} circuit "
+              f"({', '.join(circuits) or 'none'}),")
+        print(f"{float(ohl400['length_km'].sum()):,.0f} km. Ireland's 400 kV "
+              "network continues from Oldstreet to Dunstown")
+        print("and Woodland, and those legs are absent from this service. Do not "
+              "treat the")
+        print("400 kV layer as the whole 400 kV backbone.")
 
 
 def main(argv=None) -> None:

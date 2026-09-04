@@ -393,10 +393,20 @@ Transmission layer: EirGrid Transmission Development Plan 2024 public web map
 (ArcGIS feature service, layers 40 / 39 / 38), read in EPSG:2157. 24,952
 overhead line sections, 1,607 cable sections, 161 stations; 5,348 km overhead
 and 774 km cable, against EirGrid's published 6,500 km. This is the
-transmission system operator's own asset register, so unlike the
-OpenStreetMap layers above it is not a coverage question - it is used here as
-the reference the OSM 110 kV+ band can be judged against, and as the backbone
-on the national map.
+transmission system operator's own asset register, so unlike the OpenStreetMap
+layers above it is largely not a coverage question - it is used here as the
+reference the OSM 110 kV+ band can be judged against, and as the backbone on
+the national map.
+
+With one exception the aggregate agreement hides. The 400 kV layer holds a
+single overhead circuit, `MONEYPOINT-OLDSTREET`, 103 km spanning longitude
+-9.42 to -8.27 - the western leg only. The 400 kV network continues from
+Oldstreet to Dunstown and on to Woodland, and no circuit for those legs is
+present in the service at any voltage. So the 110 kV and 220 kV layers can be
+taken as the register; the 400 kV layer cannot be taken as the whole 400 kV
+backbone. For a model that aggregates to regional nodes this matters less than
+it sounds, but it is the one place this dataset should not be trusted
+unqualified.
 
 Reference asset counts: [ESB Networks, "Our
 network"](https://www.esbnetworks.ie/about-us/company/our-network).

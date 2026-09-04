@@ -1,8 +1,9 @@
 # Ireland's electricity network, from open data
 
 Can OpenStreetMap stand in for ESB Networks' distribution data in the
-SWIS-100-IE energy model? **Below 38 kV, no. At 38 kV and above, yes.** The measurements behind that verdict, and what they mean for the
-model, are in **[FINDINGS.md](FINDINGS.md)**.
+SWIS-100-IE energy model? **Below 38 kV, no. At 38 kV and above, yes.** The
+measurements behind that verdict, and what they mean for the model, are in
+**[FINDINGS.md](FINDINGS.md)**.
 
 This repo also draws the map that comes out of asking the question — the
 transmission network from EirGrid's own asset register, over the distribution
@@ -11,15 +12,15 @@ network as volunteers have mapped it.
 ![Ireland's electricity network](data/national_network.png)
 
 The two layers on that map are deliberately in different colour families,
-because they are different kinds of claim. The warm lines are what EirGrid
-operates and are all there. The blue lines are what somebody happened to trace
-in OpenStreetMap: blank areas are unmapped, not unserved.
+because they are different kinds of claim. The warm lines come from EirGrid's
+own asset register. The blue lines are what somebody happened to trace in
+OpenStreetMap: blank areas are unmapped, not unserved.
 
 ## Data sources
 
 | Source | Layer | Trusted for |
 |---|---|---|
-| [EirGrid Transmission Development Plan 2024](https://eirgrid-ie.maps.arcgis.com/apps/webappviewer/index.html?id=809889bb04744a3f89fd63499d35d6c1) web map (public ArcGIS service) | 110 / 220 / 400 kV lines, cables and stations | Everything. This is the transmission system operator's own register. |
+| [EirGrid Transmission Development Plan 2024](https://eirgrid-ie.maps.arcgis.com/apps/webappviewer/index.html?id=809889bb04744a3f89fd63499d35d6c1) web map (public ArcGIS service) | 110 / 220 / 400 kV lines, cables and stations | The 110 kV and 220 kV networks. The 400 kV layer is incomplete — see below. |
 | [Geofabrik](https://download.geofabrik.de/europe/ireland-and-northern-ireland.html) `ireland-and-northern-ireland` OSM extract | sub-110 kV lines, poles, transformers, substations | The 38 kV layer. Nothing below it — see FINDINGS.md. |
 | [Ordnance Survey Ireland statutory boundaries](https://services6.arcgis.com/MmUrOQU5v1he9gfS/arcgis/rest/services/Counties_OSi_Ireland/FeatureServer/0) via Esri Ireland | the 26 Republic of Ireland counties | Drawing, and attributing features to counties. |
 
@@ -27,6 +28,16 @@ The EirGrid figure checks out against its publisher: summing the geometry gives
 5,348 km of overhead line and 774 km of underground cable, 6,122 km in total,
 against EirGrid's published "6,500 km of overhead line and underground cable".
 `python eirgrid.py summary` reproduces that.
+
+**One gap the aggregate hides.** The 400 kV layer holds a single overhead
+circuit — `MONEYPOINT-OLDSTREET`, 103 km, spanning longitude −9.42 to −8.27,
+which is the western leg only. Ireland's 400 kV network continues east from
+Oldstreet to Dunstown in Kildare and on to Woodland in Meath; EirGrid's own
+"Dunstown–Moneypoint 400 kV Refurbishment" project names the full route, and
+no circuit for those legs is in this service at any voltage. 400 kV is a small
+share of the total so it barely moves the headline number, but do not use this
+layer alone for anything that needs the 400 kV backbone to be whole.
+`eirgrid.py summary` prints a warning to that effect.
 
 ## Layout
 

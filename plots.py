@@ -326,14 +326,14 @@ def plot_national(with_eirgrid: bool = True) -> None:
     first = ax.legend(handles=tx_handles, loc="upper left",
                       bbox_to_anchor=(0.0, 1.0), fontsize=8.5, frameon=False,
                       labelcolor=INK_SECONDARY,
-                      title="EirGrid transmission  (complete)",
+                      title="EirGrid transmission  (operator data)",
                       title_fontsize=8.5,
                       handlelength=1.7, borderpad=0.5, labelspacing=0.5)
     first.get_title().set_color(INK_MUTED)
     second = ax.legend(handles=dist_handles[::-1], loc="upper left",
                        bbox_to_anchor=(0.0, 0.845), fontsize=8.5,
                        frameon=False, labelcolor=INK_SECONDARY,
-                       title="OpenStreetMap distribution  (partial)",
+                       title="OpenStreetMap distribution  (crowd-sourced)",
                        title_fontsize=8.5,
                        handlelength=1.7, borderpad=0.5, labelspacing=0.5)
     second.get_title().set_color(INK_MUTED)
@@ -344,21 +344,24 @@ def plot_national(with_eirgrid: bool = True) -> None:
     ax.set_title("Ireland's electricity network\nRepublic of Ireland",
                  fontsize=15, color=INK, loc="left", pad=16)
     ax.text(0.0, 1.005,
-            f"EirGrid transmission, 110 kV and above: {tx_km:,.0f} km, "
-            "complete  ·  "
-            f"OpenStreetMap distribution, below 110 kV: {dist_km:,.0f} km, "
-            "partial",
+            f"EirGrid transmission, 110 kV and above: {tx_km:,.0f} km in "
+            "service  ·  "
+            f"OpenStreetMap distribution, below 110 kV: {dist_km:,.0f} km "
+            "mapped",
             transform=ax.transAxes, fontsize=9, color=INK_SECONDARY,
             va="bottom")
     ax.text(0.0, -0.018,
             "The two layers are not comparable in kind. The transmission "
-            "network is EirGrid's own asset register and is all there. The "
-            "distribution network is\ncrowd-sourced: blank areas are unmapped, "
-            "not unserved - every part of the state is served, and "
-            "OpenStreetMap holds about a fifth of\nwhat ESB Networks reports "
-            "as 172,000 km of distribution network.",
+            "network is EirGrid's own asset register; the distribution network "
+            "is crowd-sourced, so its\nblank areas are unmapped, not unserved "
+            "- every part of the state is served, and OpenStreetMap holds "
+            "about a fifth of what ESB Networks\nreports as 172,000 km of "
+            "distribution network. One gap on the EirGrid side: its 400 kV "
+            "layer carries only the Moneypoint-Oldstreet leg, so the\n400 kV "
+            "backbone east of Oldstreet, to Dunstown and Woodland, is missing "
+            "from the published service and therefore from this map.",
             transform=ax.transAxes, fontsize=9, color=INK_SECONDARY, va="top")
-    ax.text(0.0, -0.083,
+    ax.text(0.0, -0.106,
             "EirGrid Transmission Development Plan 2024 web map  ·  "
             "Geofabrik ireland-and-northern-ireland extract  ·  "
             "Ordnance Survey Ireland county boundaries  ·  "
