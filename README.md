@@ -11,6 +11,10 @@ network as volunteers have mapped it.
 
 ![Ireland's electricity network](data/national_network.png)
 
+There is an interactive version of the distribution layer too:
+`data/ireland_distribution_map.html`, self-contained, opens from disk with no
+server. Voltage bands are separate layers and the point assets are clickable.
+
 The two layers on that map are deliberately in different colour families,
 because they are different kinds of claim. The warm lines come from EirGrid's
 own asset register. The blue lines are what somebody happened to trace in
@@ -47,6 +51,7 @@ layer alone for anything that needs the 400 kV backbone to be whole.
 | `eirgrid.py` | The EirGrid layer: paged ArcGIS download of the transmission network, plus county boundaries. |
 | `plots.py` | Maps — the national one and one per analysis area. |
 | `analysis.py` | The five measurements FINDINGS.md is built on. |
+| `extract_web_data.py`, `extract_web_base.py`, `build_web_map.py` | The interactive Leaflet map of the distribution layer. |
 | `test_network.py` | Regression tests, mostly guarding things that would silently move a published number. |
 
 ## Running it
@@ -70,6 +75,14 @@ python plots.py all              # every map
 python -m pytest test_network.py
 ```
 
+The interactive map is built from the same extract, separately:
+
+```bash
+python extract_web_data.py       # island-wide lines and sites, ways reassembled
+python extract_web_base.py       # county and Northern Ireland outlines
+python build_web_map.py          # data/ireland_distribution_map.html
+```
+
 Each stage caches into `data/raw/` and skips itself if the cache is there, so
 the commands are safe to re-run and there is no order to remember.
 
@@ -78,6 +91,7 @@ the commands are safe to re-run and there is no order to remember.
 | File | Answers |
 |---|---|
 | `national_network.png` | What does the whole network look like, and how much of it does OSM have? |
+| `ireland_distribution_map.html` | The same distribution layer, interactive and layer-by-layer. |
 | `eirgrid_transmission.gpkg` | The 110 kV+ network: lines and stations, EPSG:2157. |
 | `national_distribution.gpkg` | The sub-110 kV OSM lines for the Republic, banded by voltage. |
 | `analysis.json` | Per area: tag coverage, length by band, component-size distributions, snapping sweep. |

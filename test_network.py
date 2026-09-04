@@ -254,19 +254,29 @@ def test_eirgrid_paging_raises_on_an_empty_page(monkeypatch):
         eirgrid.query_paged(40, ("OBJECTID",))
 
 
-def test_raw_cache_paths_live_only_in_network():
-    """No consumer may name a data/raw path; caches are reached via their builder.
+def test_no_two_modules_name_the_same_cache_path():
+    """A cache path may be written by one module and imported by others.
 
-    plot_national used to read data/raw/counties.gpkg, which only the county
-    sweep wrote and which is gitignored, so the national map crashed on a fresh
-    clone unless another script had run first. Keeping the paths in one module
-    is what stops that class of dependency coming back.
+    The bug this guards against: plot_national.py re-typed
+    "data/raw/counties.gpkg", a path only county_sweep.py wrote, so the
+    national map crashed on a fresh clone unless another script had run first.
+    Two modules naming the same path is that bug; one module owning a path and
+    others importing the constant - as build_web_map does from
+    extract_web_data - is the fix, so this checks for re-typing rather than
+    for the literal.
     """
+    import collections
     import pathlib
+    import re
 
-    offenders = [
-        p.name for p in pathlib.Path(__file__).parent.glob("*.py")
-        if p.name not in ("network.py", pathlib.Path(__file__).name)
-        and "data/raw" in p.read_text()
-    ]
-    assert offenders == []
+    here = pathlib.Path(__file__).parent
+    owners = collections.defaultdict(set)
+    for path in sorted(here.glob("*.py")):
+        if path.name == pathlib.Path(__file__).name:
+            continue
+        for hit in re.findall(r'"(data/raw/[^"]+)"', path.read_text()):
+            owners[hit].add(path.name)
+
+    shared = {path: sorted(mods) for path, mods in owners.items()
+              if len(mods) > 1}
+    assert shared == {}, f"cache paths named in more than one module: {shared}"
