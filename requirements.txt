@@ -1,10 +1,12 @@
-osmnx>=2.0
 geopandas>=1.0
-matplotlib
-networkx
-pyrosm
-shapely
-pyogrio
+pyogrio>=0.7
+shapely>=2.0
 numpy
 pandas
-osmium
+networkx
+matplotlib
+pyrosm
+osmium>=4.0      # pyosmium: FileProcessor, filter.KeyFilter, BackReferenceWriter
+scipy            # scipy.spatial.cKDTree for the MST candidate graph
+requests>=2.31   # EirGrid ArcGIS paging
+pytest

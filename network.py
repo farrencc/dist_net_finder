@@ -1,4 +1,4 @@
-"""Distribution-level (sub-110 kV) electricity network features for Ireland from OpenStreetMap.
+"""OpenStreetMap electricity network features for Ireland, and the graph built from them.
 
 Data source
 -----------
@@ -17,14 +17,22 @@ Pipeline
    file at 15 GB.  The prefiltered file is ~7 MB and pyrosm reads it in
    seconds.  The same ``power`` tag filter is then re-applied by pyrosm, so
    the selection is identical to filtering the full file directly.
-3. ``load_area``          - read the prefiltered file with pyrosm, clip to an
-   administrative boundary, and split into line / node / area GeoDataFrames.
+3. ``load_lines``         - read the prefiltered file with pyrosm and split it
+   into line / node / area GeoDataFrames.  This is the only place pyrosm is
+   called; ``load_area`` (one county, boundary-clipped), ``national_lines``
+   (island-wide conductors) and ``island_features`` (the county sweep) are
+   thin parameterisations of it.
 4. ``to_graph``           - build a ``networkx.MultiGraph`` from the line
    features with a configurable snapping tolerance.
 
 Voltage bands follow the Irish system: LV 230/400 V, MV 10 kV and 20 kV,
 38 kV sub-transmission, and 110 kV and above which is transmission (ESB
 Networks operates everything below 110 kV; EirGrid owns 110 kV+).
+
+Everything here is OpenStreetMap, so everything here is a claim about what
+volunteers have mapped rather than about what exists.  EirGrid's own
+transmission asset register is read by ``eirgrid.py`` instead, and the two are
+kept apart deliberately - see that module's docstring.
 """
 
 from __future__ import annotations
@@ -34,7 +42,6 @@ import math
 import os
 import re
 import subprocess
-import sys
 from dataclasses import dataclass
 
 import geopandas as gpd
@@ -42,7 +49,6 @@ import networkx as nx
 import numpy as np
 import pandas as pd
 import shapely
-from shapely.geometry import LineString, MultiLineString, Point
 from shapely.ops import unary_union
 
 # --------------------------------------------------------------------------- #
@@ -57,6 +63,8 @@ PBF_PATH = os.path.join(RAW_DIR, "ireland-and-northern-ireland-latest.osm.pbf")
 POWER_PBF_PATH = os.path.join(RAW_DIR, "ireland-power.osm.pbf")
 BOUNDS_PBF_PATH = os.path.join(RAW_DIR, "ireland-boundaries.osm.pbf")
 BOUNDS_GPKG = os.path.join(RAW_DIR, "boundaries.gpkg")
+NATIONAL_LINES_GPKG = os.path.join(RAW_DIR, "national_lines.gpkg")
+COUNTIES_GPKG = os.path.join(RAW_DIR, "counties.gpkg")
 
 # Irish Transverse Mercator - the national grid; metres, so lengths and
 # snapping tolerances are directly interpretable.
@@ -65,22 +73,6 @@ WGS84 = "EPSG:4326"
 
 #: ``power`` values that describe a conductor run.
 LINE_POWER_VALUES = ("line", "minor_line", "cable")
-
-#: ``power`` values that describe a point asset.
-NODE_POWER_VALUES = (
-    "pole",
-    "tower",
-    "transformer",
-    "substation",
-    "switch",
-    "portal",
-    "terminal",
-    "insulator",
-    "converter",
-    "generator",
-    "catenary_mast",
-    "connection",
-)
 
 #: Tags we need as real columns.  pyrosm promotes only a fixed default set of
 #: keys to DataFrame columns and buries everything else in a JSON ``tags``
@@ -92,20 +84,42 @@ TAGS_AS_COLUMNS = (
     "line", "minor_line", "switch",
 )
 
-#: Ordered (label, lower_bound_volts, upper_bound_volts) - upper bound exclusive.
+@dataclass(frozen=True)
+class Band:
+    """One voltage band.
+
+    ``id`` is the stable key: plot palettes and draw order use only this, so
+    editing a display label cannot silently drop a layer from a map.  ``label``
+    is the exact string written into ``data/analysis.json`` (as keys of
+    ``km_by_band``, ``count_by_band`` and ``km_by_band_per_1000km2``) and drawn
+    in map legends, so it is load-bearing output and must not be changed
+    casually.  ``hi`` is exclusive.
+    """
+
+    id: str
+    label: str
+    lo: float
+    hi: float
+
+
+#: Ordered by voltage, ascending.
 VOLTAGE_BANDS = (
-    ("LV (<1 kV)", 0.0, 1_000.0),
-    ("MV (1-<38 kV)", 1_000.0, 38_000.0),
-    ("38 kV", 38_000.0, 110_000.0),
-    ("HV >=110 kV (transmission)", 110_000.0, math.inf),
+    Band("lv", "LV (<1 kV)", 0.0, 1_000.0),
+    Band("mv", "MV (1-<38 kV)", 1_000.0, 38_000.0),
+    Band("kv38", "38 kV", 38_000.0, 110_000.0),
+    Band("tx", "HV >=110 kV (transmission)", 110_000.0, math.inf),
 )
 
-UNKNOWN_BAND = "unknown (no voltage tag)"
+UNKNOWN = Band("unknown", "unknown (no voltage tag)", math.nan, math.nan)
+UNKNOWN_BAND = UNKNOWN.label
+
+#: Every band, in the order layers should be drawn: untagged first so it sits
+#: underneath, then ascending voltage so the sparse high-voltage lines are on
+#: top of the dense low-voltage mesh.
+ALL_BANDS = (UNKNOWN,) + VOLTAGE_BANDS
 
 #: Anything at or above this is EirGrid transmission, not distribution.
 DISTRIBUTION_MAX_V = 110_000.0
-
-BAND_ORDER = [b[0] for b in VOLTAGE_BANDS] + [UNKNOWN_BAND]
 
 #: Areas analysed.  ``osm_id`` is the OSM relation id, pinned so the selection
 #: is reproducible and does not depend on a geocoder.
@@ -139,8 +153,16 @@ def _md5(path: str, chunk: int = 1 << 20) -> str:
     return h.hexdigest()
 
 
-def download_extract(url: str = GEOFABRIK_URL, path: str = PBF_PATH) -> str:
-    """Download the Geofabrik extract if absent and verify its published MD5."""
+def download_extract(url: str = GEOFABRIK_URL, path: str = PBF_PATH,
+                     verify_md5: bool = True) -> str:
+    """Download the Geofabrik extract if absent and verify its published MD5.
+
+    Note that Geofabrik republishes this file continuously, so the checksum
+    fetched here is the checksum of whatever is current - it establishes that
+    the download is intact, not that it is the same extract a previous run
+    used.  The extract this repo's published figures were measured against is
+    named in FINDINGS.md.
+    """
     os.makedirs(os.path.dirname(path), exist_ok=True)
     if not os.path.exists(path):
         subprocess.run(
@@ -148,6 +170,8 @@ def download_extract(url: str = GEOFABRIK_URL, path: str = PBF_PATH) -> str:
              "--retry-all-errors", "-C", "-", "-o", path, url],
             check=True,
         )
+    if not verify_md5:
+        return path
     expected = subprocess.run(
         ["curl", "-sS", "--retry", "5", url + ".md5"],
         check=True, capture_output=True, text=True,
@@ -271,9 +295,9 @@ def voltage_band(volts: float | None) -> str:
     """Map volts to a band label."""
     if volts is None or (isinstance(volts, float) and math.isnan(volts)):
         return UNKNOWN_BAND
-    for label, lo, hi in VOLTAGE_BANDS:
-        if lo <= volts < hi:
-            return label
+    for band in VOLTAGE_BANDS:
+        if band.lo <= volts < band.hi:
+            return band.label
     return UNKNOWN_BAND
 
 
@@ -306,7 +330,7 @@ def voltage_series(gdf: gpd.GeoDataFrame) -> pd.Series:
 # Stage 3 - load
 # --------------------------------------------------------------------------- #
 
-def _expand_tags(gdf: gpd.GeoDataFrame,
+def expand_tags(gdf: gpd.GeoDataFrame,
                  keys: tuple = TAGS_AS_COLUMNS) -> gpd.GeoDataFrame:
     """Lift keys out of pyrosm's leftover ``tags`` JSON blob into real columns.
 
@@ -343,7 +367,7 @@ def _expand_tags(gdf: gpd.GeoDataFrame,
     return gdf
 
 
-def _explode_lines(gdf: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
+def explode_lines(gdf: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
     """Keep only (Multi)LineString rows, exploded to single LineStrings."""
     geom_type = gdf.geometry.geom_type
     lines = gdf[geom_type.isin(["LineString", "MultiLineString"])].copy()
@@ -353,9 +377,10 @@ def _explode_lines(gdf: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
     return lines[lines.geometry.geom_type == "LineString"].copy()
 
 
-def _annotate(gdf: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
+def annotate(gdf: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
     """Add ``voltage_v``, ``band`` and ``length_km`` columns."""
     if gdf.empty:
+        gdf = gdf.copy()   # never annotate the caller's frame in place
         for col in ("voltage_v", "band", "length_km"):
             if col not in gdf.columns:
                 gdf[col] = pd.Series(dtype="float64" if col != "band" else "object")
@@ -369,56 +394,183 @@ def _annotate(gdf: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
     return gdf
 
 
-def load_area(key: str, pbf_path: str = POWER_PBF_PATH) -> dict:
-    """Load power features for one analysis area.
+def read_power_features(pbf_path: str = POWER_PBF_PATH, boundary=None,
+                        keep_nodes: bool = True) -> gpd.GeoDataFrame:
+    """Read every ``power``-tagged object from a prefiltered extract.
 
-    Returns a dict with ``lines`` (conductor runs), ``nodes`` (point assets),
-    ``areas`` (polygon assets, chiefly substation footprints) and ``boundary``.
-    All GeoDataFrames are in WGS84 with ``voltage_v``, ``band`` and (for lines)
-    ``length_km`` added.
+    The only place ``pyrosm.OSM`` is called.  Returns one tag-expanded WGS84
+    frame with empty and null geometry dropped, and nothing annotated - the
+    split into lines / nodes / areas is ``load_lines``' job.
+
+    The pyrosm import is deliberately inside the function: pyrosm is needed
+    only for the OpenStreetMap rebuild, and keeping it lazy is what lets the
+    plotting and EirGrid paths run without it installed.
     """
     from pyrosm import OSM
 
-    boundary = get_boundary(key)
-    osm = OSM(pbf_path, bounding_box=boundary)
+    osm = OSM(pbf_path) if boundary is None else OSM(pbf_path,
+                                                     bounding_box=boundary)
     raw = osm.get_data_by_custom_criteria(
         custom_filter={"power": True},
         filter_type="keep",
         tags_as_columns=list(TAGS_AS_COLUMNS),
-        keep_nodes=True,
+        keep_nodes=keep_nodes,
         keep_ways=True,
         keep_relations=True,
     )
     if raw is None or len(raw) == 0:
-        empty = gpd.GeoDataFrame(geometry=[], crs=WGS84)
-        return {"lines": empty.copy(), "nodes": empty.copy(),
-                "areas": empty.copy(), "boundary": boundary, "key": key}
+        return gpd.GeoDataFrame(geometry=[], crs=WGS84)
 
     raw = raw.set_crs(WGS84, allow_override=True)
-    # pyrosm's bounding_box filter is applied per-object against the polygon,
-    # but relation members can drag geometry outside it; clip explicitly so the
-    # per-area figures are exact.
     raw = raw[~raw.geometry.is_empty & raw.geometry.notna()]
-    raw = raw[raw.geometry.intersects(boundary)].copy()
-    raw = _expand_tags(raw)
+    if boundary is not None:
+        # pyrosm's bounding_box filter is applied per-object against the
+        # polygon, but relation members can drag geometry outside it; clip
+        # explicitly so the per-area figures are exact.
+        raw = raw[raw.geometry.intersects(boundary)]
+    return expand_tags(raw.copy())
+
+
+#: Columns kept for the island-wide conductor cache.
+NATIONAL_COLUMNS = ("power", "voltage_v", "band", "length_km", "id", "geometry")
+
+
+def load_lines(pbf_path: str = POWER_PBF_PATH, *, boundary=None,
+               keep_nodes: bool = True, line_power_only: bool = False,
+               clip_lines: bool = False, columns=None,
+               cache_path: str | None = None,
+               want: tuple = ("lines", "nodes", "areas")) -> dict:
+    """Load power features once and split them by geometry type.
+
+    Returns ``{"lines", "nodes", "areas", "boundary"}``, each GeoDataFrame in
+    WGS84 with ``voltage_v``, ``band`` and (for lines) ``length_km`` added.
+
+    ``line_power_only`` defaults to *False* and that default is load-bearing.
+    The per-area path has never applied the conductor filter, so its line
+    frames include non-conductor ways that happen to be tagged ``power`` -
+    ``data/analysis.json`` records 18 ``power=portal`` linestrings in Kilkenny.
+    Flipping the default to True would silently drop them and move
+    ``n_line_features``, ``total_km``, every by-band figure, both graph blocks
+    and the missing-cable ratio.  The island-wide and county-sweep paths do
+    want the filter, and pass it explicitly.
+    """
+    empty = gpd.GeoDataFrame(geometry=[], crs=WGS84)
+    if cache_path and os.path.exists(cache_path):
+        return {"lines": gpd.read_file(cache_path), "nodes": empty.copy(),
+                "areas": empty.copy(), "boundary": boundary}
+
+    raw = read_power_features(pbf_path, boundary=boundary,
+                              keep_nodes=keep_nodes)
+    if raw.empty:
+        return {"lines": empty.copy(), "nodes": empty.copy(),
+                "areas": empty.copy(), "boundary": boundary}
 
     geom_type = raw.geometry.geom_type
-    lines = _annotate(_explode_lines(raw))
-    nodes = _annotate(raw[geom_type == "Point"].copy())
-    polys = _annotate(raw[geom_type.isin(["Polygon", "MultiPolygon"])].copy())
+    lines = annotate(explode_lines(raw))
+    if line_power_only and not lines.empty:
+        lines = lines[lines["power"].isin(LINE_POWER_VALUES)].copy()
+    nodes = (annotate(raw[geom_type == "Point"].copy())
+             if "nodes" in want else empty.copy())
+    areas = (annotate(raw[geom_type.isin(["Polygon", "MultiPolygon"])].copy())
+             if "areas" in want else empty.copy())
 
     # Keep only the portion of each line inside the boundary so length figures
     # are not inflated by lines that merely touch the county edge.
-    if not lines.empty:
+    if clip_lines and boundary is not None and not lines.empty:
         clipped = lines.copy()
         clipped["geometry"] = clipped.geometry.intersection(boundary)
         clipped = clipped[~clipped.geometry.is_empty & clipped.geometry.notna()]
-        clipped = _explode_lines(clipped)
+        clipped = explode_lines(clipped)
         clipped["length_km"] = clipped.to_crs(ITM).geometry.length / 1000.0
         lines = clipped[clipped["length_km"] > 0].copy()
 
-    return {"lines": lines, "nodes": nodes, "areas": polys,
-            "boundary": boundary, "key": key}
+    if columns:
+        lines = lines[[c for c in columns if c in lines.columns]]
+    if cache_path and not lines.empty:
+        os.makedirs(os.path.dirname(cache_path), exist_ok=True)
+        lines.to_file(cache_path, driver="GPKG")
+
+    return {"lines": lines, "nodes": nodes, "areas": areas,
+            "boundary": boundary}
+
+
+def load_area(key: str, pbf_path: str = POWER_PBF_PATH) -> dict:
+    """Power features for one analysis area, clipped to its boundary."""
+    out = load_lines(pbf_path, boundary=get_boundary(key), keep_nodes=True,
+                     line_power_only=False, clip_lines=True)
+    out["key"] = key
+    return out
+
+
+def national_lines() -> gpd.GeoDataFrame:
+    """Every conductor run on the island, unclipped, cached to a GeoPackage.
+
+    No administrative clipping: cutting lines at a county edge inflates the
+    component count for exactly the layers that span counties, which are the
+    ones worth measuring.
+    """
+    return load_lines(keep_nodes=False, line_power_only=True,
+                      columns=NATIONAL_COLUMNS, want=("lines",),
+                      cache_path=NATIONAL_LINES_GPKG)["lines"]
+
+
+def island_features() -> dict:
+    """Conductors, point assets and polygon assets for the whole island."""
+    return load_lines(keep_nodes=True, line_power_only=True)
+
+
+def load_counties() -> gpd.GeoDataFrame:
+    """Republic of Ireland counties from OSM ``admin_level=6``, cached.
+
+    ``get_boundaries()`` re-parses every administrative relation on the island
+    and takes about six minutes, so the 26-odd polygons actually wanted are
+    cached.  Used by the county sweep, whose published per-county figures are
+    keyed to these polygons and these names; the national *map* uses the
+    Ordnance Survey boundaries in ``eirgrid.fetch_counties`` instead.
+    """
+    from pyrosm import OSM
+
+    if os.path.exists(COUNTIES_GPKG):
+        return gpd.read_file(COUNTIES_GPKG)
+    osm = OSM(BOUNDS_PBF_PATH)
+    b = osm.get_boundaries(boundary_type="administrative")
+    b = b[b["admin_level"].astype(str) == "6"].copy()
+    b = b[b["name"].astype(str).str.startswith("County ")
+          | b["name"].astype(str).isin(["Dublin", "Cork", "Galway",
+                                        "Limerick", "Waterford"])]
+    rows = [{"name": str(name), "geometry": unary_union(grp.geometry.values)}
+            for name, grp in b.groupby("name")]
+    out = gpd.GeoDataFrame(rows, geometry="geometry", crs=WGS84)
+    out["area_km2"] = out.to_crs(ITM).area / 1e6
+    out = out[out["area_km2"] > 100].reset_index(drop=True)
+    os.makedirs(os.path.dirname(COUNTIES_GPKG), exist_ok=True)
+    out.to_file(COUNTIES_GPKG, driver="GPKG")
+    return out
+
+
+def as_points(nodes: gpd.GeoDataFrame, areas: gpd.GeoDataFrame,
+              kinds=None) -> gpd.GeoDataFrame:
+    """Point assets plus polygon assets collapsed to a representative point.
+
+    A substation should read the same whether a mapper drew it as a node or as
+    a footprint, so the two are merged into one point layer.  ``kinds``
+    restricts to those ``power`` values.
+    """
+    parts = []
+    for frame, collapse in ((nodes, False), (areas, True)):
+        if frame is None or frame.empty:
+            continue
+        sel = frame if kinds is None else frame[frame["power"].isin(kinds)]
+        if sel.empty:
+            continue
+        sel = sel.copy()
+        if collapse:
+            sel["geometry"] = sel.geometry.representative_point()
+        parts.append(sel)
+    if not parts:
+        return gpd.GeoDataFrame(geometry=[], crs=WGS84)
+    return gpd.GeoDataFrame(pd.concat(parts, ignore_index=True),
+                            geometry="geometry", crs=WGS84)
 
 
 def distribution_only(lines: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
@@ -559,20 +711,56 @@ def component_stats(g: nx.MultiGraph) -> dict:
     }
 
 
-def prepare(force: bool = False) -> None:
-    """Run the fetch + prefilter + boundary-cache stages."""
-    download_extract()
+def quiet() -> None:
+    """Silence the geopandas/pandas chatter these pipelines generate.
+
+    One call site instead of a blanket ``filterwarnings`` at the top of every
+    module, so a genuinely new warning is one deletion away from being visible
+    again.
+    """
+    import warnings
+
+    warnings.filterwarnings("ignore", category=UserWarning)
+    warnings.filterwarnings("ignore", category=RuntimeWarning)
+    warnings.filterwarnings("ignore", category=FutureWarning)
+    warnings.filterwarnings("ignore", category=DeprecationWarning)
+
+
+def prepare(verify_md5: bool = True) -> None:
+    """Fetch the extract, prefilter it, and build the boundary cache."""
+    download_extract(verify_md5=verify_md5)
     prefilter_extract()
     prefilter_boundaries()
     build_boundary_cache()
 
 
+def ensure_prepared() -> None:
+    """Make sure the OSM caches exist, without touching the network if they do.
+
+    Called from every command's ``main()`` so no script has to be run before
+    another one.  The MD5 is verified only when the extract is actually
+    downloaded - re-verifying it on every invocation would mean every command
+    needed connectivity to do nothing.
+    """
+    if os.path.exists(POWER_PBF_PATH) and os.path.exists(BOUNDS_GPKG):
+        return
+    prepare(verify_md5=not os.path.exists(PBF_PATH))
+
+
+def main(argv=None) -> None:
+    import argparse
+
+    p = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    sub = p.add_subparsers(dest="cmd", required=True)
+    pre = sub.add_parser("prepare", help=prepare.__doc__.splitlines()[0])
+    pre.add_argument("--verify-md5", action="store_true",
+                     help="re-check the extract against Geofabrik's published "
+                          "MD5 even if it is already downloaded")
+    args = p.parse_args(argv)
+    quiet()
+    prepare(verify_md5=args.verify_md5 or not os.path.exists(PBF_PATH))
+    print(f"ready: {POWER_PBF_PATH}, {BOUNDS_GPKG}")
+
+
 if __name__ == "__main__":
-    prepare()
-    for area in AREAS:
-        data = load_area(area.key)
-        g = to_graph(data["lines"], snap_m=1.0)
-        stats = component_stats(g)
-        print(f"{area.label}: {len(data['lines'])} lines, "
-              f"{len(data['nodes'])} nodes, {len(data['areas'])} areas, "
-              f"graph {stats['n_nodes']} nodes / {stats['n_components']} components")
+    main()

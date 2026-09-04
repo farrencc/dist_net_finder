@@ -33,7 +33,7 @@ import pandas as pd
 from shapely.geometry import shape
 from shapely.ops import unary_union
 
-import ie_distribution_osm as m
+import network as m
 
 warnings.filterwarnings("ignore")
 

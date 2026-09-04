@@ -35,7 +35,7 @@ import geopandas as gpd
 import numpy as np
 import pandas as pd
 
-import ie_distribution_osm as m
+import network as m
 from extract_web_data import COUNTS_CACHE, LINES_CACHE, SITES_CACHE
 from extract_web_base import OUT as BASE_CACHE
 

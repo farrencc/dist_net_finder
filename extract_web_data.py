@@ -27,7 +27,7 @@ import geopandas as gpd
 import pandas as pd
 from shapely.ops import linemerge, unary_union
 
-import ie_distribution_osm as m
+import network as m
 
 warnings.filterwarnings("ignore")
 
@@ -75,7 +75,7 @@ def load_raw() -> gpd.GeoDataFrame:
         keep_nodes=True, keep_ways=True, keep_relations=True,
     ).set_crs(m.WGS84, allow_override=True)
     raw = raw[~raw.geometry.is_empty & raw.geometry.notna()].copy()
-    raw = m._expand_tags(raw, keys=tuple(m.TAGS_AS_COLUMNS) + EXTRA_TAGS)
+    raw = m.expand_tags(raw, keys=tuple(m.TAGS_AS_COLUMNS) + EXTRA_TAGS)
     raw["voltage_v"] = [m.parse_voltage(v) for v in m.voltage_series(raw)]
     raw["band"] = [m.voltage_band(v) for v in raw["voltage_v"]]
     for col in KEEP:
