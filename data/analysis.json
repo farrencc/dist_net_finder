@@ -6,13 +6,13 @@
     "admin_level": "6",
     "area_km2": 2071.0,
     "line_counts_by_power": {
-      "minor_line": 15194,
+      "minor_line": 15184,
       "line": 657,
       "cable": 219,
       "portal": 18
     },
     "node_counts_by_power": {
-      "pole": 20283,
+      "pole": 20266,
       "tower": 396,
       "transformer": 99,
       "generator": 83,
@@ -33,16 +33,16 @@
       "proposed": 2,
       "planned": 1
     },
-    "n_line_features": 16088,
+    "n_line_features": 16078,
     "n_line_features_with_voltage": 7786,
-    "frac_lines_with_voltage": 0.484,
-    "total_km": 1526.0,
-    "frac_km_with_voltage": 0.5141,
+    "frac_lines_with_voltage": 0.4843,
+    "total_km": 1525.4,
+    "frac_km_with_voltage": 0.5143,
     "by_power_tag": {
       "minor_line": {
-        "n": 15194,
-        "km": 1386.1,
-        "frac_with_voltage": 0.4552
+        "n": 15184,
+        "km": 1385.4,
+        "frac_with_voltage": 0.4555
       },
       "line": {
         "n": 657,
@@ -60,21 +60,21 @@
       "HV >=110 kV (transmission)": 129.1,
       "LV (<1 kV)": 12.0,
       "MV (1-<38 kV)": 458.7,
-      "unknown (no voltage tag)": 741.6
+      "unknown (no voltage tag)": 740.9
     },
     "count_by_band": {
       "38 kV": 1495,
       "HV >=110 kV (transmission)": 664,
       "LV (<1 kV)": 250,
       "MV (1-<38 kV)": 5377,
-      "unknown (no voltage tag)": 8302
+      "unknown (no voltage tag)": 8292
     },
     "km_by_band_per_1000km2": {
       "38 kV": 89.2,
       "HV >=110 kV (transmission)": 62.4,
       "LV (<1 kV)": 5.8,
       "MV (1-<38 kV)": 221.5,
-      "unknown (no voltage tag)": 358.1
+      "unknown (no voltage tag)": 357.8
     },
     "distinct_voltages": {
       "10000": 4891,
@@ -88,10 +88,10 @@
     },
     "cable_vs_minor_line": {
       "n_cable": 219,
-      "n_minor_line": 15194,
-      "count_ratio": 0.01441,
+      "n_minor_line": 15184,
+      "count_ratio": 0.01442,
       "km_cable": 10.85,
-      "km_minor_line": 1386.1,
+      "km_minor_line": 1385.4,
       "km_ratio": 0.00783
     },
     "location_tag_counts": {
@@ -99,32 +99,32 @@
       "indoor": 11
     },
     "n_lines_location_underground": 219,
-    "n_distribution_line_features": 15424,
-    "distribution_km": 1396.9,
+    "n_distribution_line_features": 15414,
+    "distribution_km": 1396.2,
     "graph_all_lines_snap1m": {
-      "n_nodes": 16769,
-      "n_edges": 16105,
-      "n_components": 689,
+      "n_nodes": 16755,
+      "n_edges": 16095,
+      "n_components": 685,
       "largest": 1583,
-      "largest_share": 0.0944003816566283,
+      "largest_share": 0.09447925992241123,
       "median": 7.0,
-      "mean": 24.338171262699564,
-      "n_size_le_2": 61,
-      "n_size_le_5": 277,
+      "mean": 24.45985401459854,
+      "n_size_le_2": 60,
+      "n_size_le_5": 273,
       "n_size_ge_50": 72,
-      "share_nodes_in_comps_le_5": 0.05671178961178365,
+      "share_nodes_in_comps_le_5": 0.056102655923604895,
       "histogram": {
         "1": {
           "n_components": 0,
           "n_nodes": 0
         },
         "2": {
-          "n_components": 61,
-          "n_nodes": 122
+          "n_components": 60,
+          "n_nodes": 120
         },
         "3-5": {
-          "n_components": 216,
-          "n_nodes": 829
+          "n_components": 213,
+          "n_nodes": 820
         },
         "6-10": {
           "n_components": 141,
@@ -132,7 +132,7 @@
         },
         "11-25": {
           "n_components": 131,
-          "n_nodes": 2099
+          "n_nodes": 2096
         },
         "26-50": {
           "n_components": 72,
@@ -165,29 +165,29 @@
       ]
     },
     "graph_distribution_only_snap1m": {
-      "n_nodes": 16107,
-      "n_edges": 15439,
-      "n_components": 690,
+      "n_nodes": 16093,
+      "n_edges": 15429,
+      "n_components": 686,
       "largest": 1222,
-      "largest_share": 0.07586763518966909,
+      "largest_share": 0.07593363574224818,
       "median": 7.0,
-      "mean": 23.343478260869563,
-      "n_size_le_2": 61,
-      "n_size_le_5": 280,
+      "mean": 23.459183673469386,
+      "n_size_le_2": 60,
+      "n_size_le_5": 276,
       "n_size_ge_50": 68,
-      "share_nodes_in_comps_le_5": 0.05966350034146644,
+      "share_nodes_in_comps_le_5": 0.0590318772136954,
       "histogram": {
         "1": {
           "n_components": 0,
           "n_nodes": 0
         },
         "2": {
-          "n_components": 61,
-          "n_nodes": 122
+          "n_components": 60,
+          "n_nodes": 120
         },
         "3-5": {
-          "n_components": 219,
-          "n_nodes": 839
+          "n_components": 216,
+          "n_nodes": 830
         },
         "6-10": {
           "n_components": 142,
@@ -195,7 +195,7 @@
         },
         "11-25": {
           "n_components": 131,
-          "n_nodes": 2099
+          "n_nodes": 2096
         },
         "26-50": {
           "n_components": 73,
@@ -464,7 +464,7 @@
     "node_counts_by_power": {
       "transformer": 767,
       "catenary_mast": 448,
-      "generator": 262,
+      "generator": 261,
       "pole": 202,
       "connection": 64,
       "tower": 61,
@@ -696,8 +696,8 @@
     },
     "node_counts_by_power": {
       "pole": 15623,
-      "generator": 3082,
-      "transformer": 1903,
+      "generator": 3029,
+      "transformer": 1899,
       "catenary_mast": 1473,
       "tower": 887,
       "terminal": 613,
@@ -924,17 +924,17 @@
   },
   "_snap_sweep_kilkenny": [
     {
-      "n_nodes": 16111,
-      "n_edges": 15424,
-      "n_components": 698,
+      "n_nodes": 16097,
+      "n_edges": 15414,
+      "n_components": 694,
       "largest": 1222,
-      "largest_share": 0.07584879895723419,
+      "largest_share": 0.07591476672671926,
       "median": 7.0,
-      "mean": 23.081661891117477,
-      "n_size_le_2": 61,
-      "n_size_le_5": 284,
+      "mean": 23.194524495677232,
+      "n_size_le_2": 60,
+      "n_size_le_5": 280,
       "n_size_ge_50": 69,
-      "share_nodes_in_comps_le_5": 0.060641797529638136,
+      "share_nodes_in_comps_le_5": 0.06001118220786482,
       "snap_m": 0.1,
       "top_5_sizes": [
         1222,
@@ -945,17 +945,17 @@
       ]
     },
     {
-      "n_nodes": 16107,
-      "n_edges": 15439,
-      "n_components": 690,
+      "n_nodes": 16093,
+      "n_edges": 15429,
+      "n_components": 686,
       "largest": 1222,
-      "largest_share": 0.07586763518966909,
+      "largest_share": 0.07593363574224818,
       "median": 7.0,
-      "mean": 23.343478260869563,
-      "n_size_le_2": 61,
-      "n_size_le_5": 280,
+      "mean": 23.459183673469386,
+      "n_size_le_2": 60,
+      "n_size_le_5": 276,
       "n_size_ge_50": 68,
-      "share_nodes_in_comps_le_5": 0.05966350034146644,
+      "share_nodes_in_comps_le_5": 0.0590318772136954,
       "snap_m": 1.0,
       "top_5_sizes": [
         1222,
@@ -966,17 +966,17 @@
       ]
     },
     {
-      "n_nodes": 15997,
-      "n_edges": 15439,
-      "n_components": 667,
+      "n_nodes": 15983,
+      "n_edges": 15429,
+      "n_components": 663,
       "largest": 1570,
-      "largest_share": 0.09814340188785398,
+      "largest_share": 0.09822936870424827,
       "median": 7.0,
-      "mean": 23.98350824587706,
-      "n_size_le_2": 60,
-      "n_size_le_5": 274,
+      "mean": 24.10708898944193,
+      "n_size_le_2": 59,
+      "n_size_le_5": 270,
       "n_size_ge_50": 63,
-      "share_nodes_in_comps_le_5": 0.05876101769081703,
+      "share_nodes_in_comps_le_5": 0.05812425702308703,
       "snap_m": 5.0,
       "top_5_sizes": [
         1570,
@@ -987,17 +987,17 @@
       ]
     },
     {
-      "n_nodes": 15261,
-      "n_edges": 14981,
-      "n_components": 573,
+      "n_nodes": 15249,
+      "n_edges": 14972,
+      "n_components": 570,
       "largest": 3777,
-      "largest_share": 0.24749361116571653,
+      "largest_share": 0.2476883730080661,
       "median": 7.0,
-      "mean": 26.63350785340314,
+      "mean": 26.75263157894737,
       "n_size_le_2": 54,
-      "n_size_le_5": 243,
+      "n_size_le_5": 240,
       "n_size_ge_50": 42,
-      "share_nodes_in_comps_le_5": 0.05491121158508617,
+      "share_nodes_in_comps_le_5": 0.05436422060462981,
       "snap_m": 25.0,
       "top_5_sizes": [
         3777,
