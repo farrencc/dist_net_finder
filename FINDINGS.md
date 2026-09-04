@@ -376,6 +376,20 @@ python plot_national.py           # data/national_distribution.{png,gpkg} - all 
 python -m pytest test_voltage_branch.py
 ```
 
+The interactive map is built separately, from the same extract:
+
+```bash
+python extract_web_data.py        # data/raw/web_{lines,sites}.gpkg - island-wide, ways reassembled
+python extract_web_base.py        # data/raw/web_base.gpkg - county and Northern Ireland outlines
+python build_web_map.py           # data/ireland_distribution_map.html
+```
+
+`data/ireland_distribution_map.html` is self-contained: open it from disk, no
+server. Every voltage band is a separate layer, the point assets are
+clickable and searchable, and the default view is the ≥38 kV layers plus the
+substations - the part of the data section 7 says you can use. MV, LV and the
+untagged remainder are one click away with the caveats stated beside them.
+
 Extract: Geofabrik `ireland-and-northern-ireland-latest.osm.pbf`, 2026-08-28,
 MD5 `e6fa4fd2707d7c05388e288c8f5ff94d`.
 
