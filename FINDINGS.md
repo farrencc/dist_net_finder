@@ -19,15 +19,16 @@ split.
 Two things did not match the brief, and both are worth stating plainly before
 any numbers.
 
-First, `ie_distribution_osm.py` was not in the repository. The repo at
-`4246414` contained exactly two things: an empty `data/.gitkeep` and a file
-called `requirements.txt.txt`. There was no script to run, so there was no
-osmnx 2.x API drift to hit and no pre-existing `gdf.get("voltage")` branch to
-inspect in situ. The pipeline here was written fresh against the interface
-described in the brief — power-tag GeoDataFrames plus a `networkx.MultiGraph`
-from `to_graph(snap_m=...)`. Where the brief predicted a specific failure, the
-prediction is reported against the new code, and the `voltage` case
-(section 2) turned out to be a genuine and consequential bug.
+First, there was no pipeline module in the repository (the OpenStreetMap data
+layer is now `network.py`). The repo at `4246414` contained exactly two
+things: an empty `data/.gitkeep` and a file called `requirements.txt.txt`.
+There was no script to run, so there was no osmnx 2.x API drift to hit and no
+pre-existing `gdf.get("voltage")` branch to inspect in situ. The pipeline here
+was written fresh against the interface described in the brief — power-tag
+GeoDataFrames plus a `networkx.MultiGraph` from `to_graph(snap_m=...)`. Where
+the brief predicted a specific failure, the prediction is reported against the
+new code, and the `voltage` case (section 2) turned out to be a genuine and
+consequential bug.
 
 Second, the Geofabrik download had to go over plain HTTP. This session's
 egress policy blocks HTTPS to `download.geofabrik.de` — and to
@@ -73,7 +74,7 @@ reasons.
 The fix is to name the tags in `tags_as_columns`, expand the leftover blob as
 a fallback, and have the accessor return an explicit all-NA Series so a
 missing column reports "0 of N tagged" rather than dropping the area.
-`test_voltage_branch.py` pins all of this, including the `ValueError` on the
+`test_network.py` pins all of this, including the `ValueError` on the
 present-column case.
 
 ## 3. Coverage: the assumption was right about the outcome, wrong about the mechanism
@@ -365,19 +366,37 @@ should not start until the ESB data is in hand.
 
 ```bash
 pip install -r requirements.txt
-python -c "import ie_distribution_osm as m; m.prepare()"   # download + prefilter + boundary cache
-python analyse.py                 # data/analysis.json - coverage, bands, components, snap sweep
-python national_check.py          # data/national.json - island-wide graph by voltage layer
-python subtransmission_check.py   # data/subtransmission.json - per-area layers
-python missing_cable.py           # data/missing_cable.json - MST lower bound
-python county_sweep.py            # data/county_sweep.csv - all 26 counties of the Republic
-python plot_areas.py              # per-area PNGs (160 dpi) and GeoPackages (lines, nodes; EPSG:2157)
-python plot_national.py           # data/national_distribution.{png,gpkg} - all sub-110 kV line, Republic
-python -m pytest test_voltage_branch.py
+python network.py prepare         # download + prefilter + boundary cache
+python analysis.py areas          # data/analysis.json - coverage, bands, components, snap sweep
+python analysis.py national       # data/national.json - island-wide graph by voltage layer
+python analysis.py subtransmission  # data/subtransmission.json - per-area layers
+python analysis.py missing-cable  # data/missing_cable.json - MST lower bound
+python analysis.py counties       # data/county_sweep.csv - all 26 counties of the Republic
+python plots.py areas             # per-area PNGs (160 dpi) and GeoPackages (lines, nodes; EPSG:2157)
+python eirgrid.py fetch           # data/eirgrid_transmission.gpkg - EirGrid 110 kV+ network
+python plots.py national          # data/national_network.png - both layers, Republic
+python -m pytest test_network.py
 ```
 
+`python analysis.py all` and `python plots.py all` run each group in order.
+Every stage caches and skips itself if the cache is present.
+
 Extract: Geofabrik `ireland-and-northern-ireland-latest.osm.pbf`, 2026-08-28,
-MD5 `e6fa4fd2707d7c05388e288c8f5ff94d`.
+MD5 `e6fa4fd2707d7c05388e288c8f5ff94d`. Geofabrik republishes this file
+continuously, so a later run will fetch a newer extract and the OSM-derived
+figures in this document will move slightly. The committed
+`data/national_distribution.gpkg` holds the lines these figures were measured
+from, and `plots.py national` reads it in preference to rebuilding, so the map
+stays consistent with the text.
+
+Transmission layer: EirGrid Transmission Development Plan 2024 public web map
+(ArcGIS feature service, layers 40 / 39 / 38), read in EPSG:2157. 24,952
+overhead line sections, 1,607 cable sections, 161 stations; 5,348 km overhead
+and 774 km cable, against EirGrid's published 6,500 km. This is the
+transmission system operator's own asset register, so unlike the
+OpenStreetMap layers above it is not a coverage question - it is used here as
+the reference the OSM 110 kV+ band can be judged against, and as the backbone
+on the national map.
 
 Reference asset counts: [ESB Networks, "Our
 network"](https://www.esbnetworks.ie/about-us/company/our-network).
