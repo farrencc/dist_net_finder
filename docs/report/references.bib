@@ -1,0 +1,233 @@
+% ---------------------------------------------------------------------------
+% Sources for the TYTFS report.
+%
+% Every entry here was checked from this environment in September 2026.  Where
+% a document could be found in a search index but the host itself is refused by
+% this environment's egress policy, the entry carries a `note` saying so - the
+% reference is real and locatable, but its contents were not read here and no
+% claim in the report leans on wording that was not verified.
+% ---------------------------------------------------------------------------
+
+% --- The data ---------------------------------------------------------------
+
+@misc{eirgrid_tytfs2024,
+  author       = {{EirGrid and SONI}},
+  title        = {{All-Island Ten Year Transmission Forecast Statement 2024}},
+  year         = {2024},
+  howpublished = {\url{https://cms.eirgrid.ie/all-island-ten-year-transmission-forecast-statement-2024}},
+  note         = {The publication this work reads.  Study files are PSS/E v35
+                  raw cases.  Page located by search; the host is refused by
+                  this environment's egress policy, so the page text was not
+                  read here -- everything the report says about the cases is
+                  measured from the files themselves.}
+}
+
+@misc{eirgrid_wdt2024,
+  author       = {{EirGrid and SONI}},
+  title        = {{Wind Dispatch Tool Constraint Group Overview}},
+  year         = {2024},
+  month        = feb,
+  howpublished = {\url{https://cms.eirgrid.ie/sites/default/files/publications/Wind-Dispatch-Tool-Constraint-Group-Overview_0.pdf}},
+  note         = {Version of 1 February 2024.  Also mirrored by SONI and by
+                  SEM-O.  Host refused by this environment's egress policy; the
+                  group names quoted in the report come from a search index of
+                  this document, not from the document itself.}
+}
+
+@misc{eirgrid_wdt2020,
+  author       = {{EirGrid and SONI}},
+  title        = {{Wind Dispatch Tool Constraint Group Overview}},
+  year         = {2020},
+  month        = feb,
+  howpublished = {\url{https://www.sem-o.com/sites/semo/files/documents/wind-dispatch-tool-constraint-groups.pdf}},
+  note         = {Version of 28 February 2020, hosted by SEM-O.  Named here
+                  because the North West group definitions changed between it
+                  and the 2024 version.}
+}
+
+@misc{eirgrid_tdp2024_service,
+  author       = {{EirGrid}},
+  title        = {{Transmission Development Plan 2024} web map (public ArcGIS
+                  feature service)},
+  year         = {2024},
+  howpublished = {\url{https://services-eu1.arcgis.com/1VGs4Se8lewgdzfE/arcgis/rest/services/TDP_2024_Web_Map_PUBLIC/FeatureServer}},
+  note         = {Layers 38 (stations), 39 (underground cable) and 40
+                  (overhead line).  Read by \texttt{eirgrid.py}; this is the
+                  station layer the geocoding is cross-checked against.}
+}
+
+@misc{semc_voll2023,
+  author       = {{SEM Committee}},
+  title        = {Calculation of a single {Value of Lost Load} within the
+                  {Single Electricity Market}: Information Paper},
+  number       = {SEM-23-072},
+  year         = {2023},
+  month        = sep,
+  howpublished = {\url{https://www.semcommittee.com/publications/sem-23-072-calculation-single-value-lost-load-within-single-electricity-market}}
+}
+
+% --- Formats and tools ------------------------------------------------------
+
+@misc{powsybl_psse,
+  author       = {{PowSyBl}},
+  title        = {{PSS}\textregistered{E} grid exchange format documentation},
+  year         = {2025},
+  howpublished = {\url{https://powsybl.readthedocs.io/projects/powsybl-core/en/latest/grid_exchange_formats/psse/}},
+  note         = {Open-source reader documentation for the PSS/E RAW format,
+                  used here for the bus \texttt{IDE} type codes.  Siemens' own
+                  PSS/E manual is not publicly available, which is why the
+                  report treats the meaning of \texttt{RATE1..RATE3} as an
+                  inference from the data rather than as a documented fact.}
+}
+
+@article{pypsa,
+  author  = {Brown, T. and H\"{o}rsch, J. and Schlachtberger, D.},
+  title   = {{PyPSA}: {Python} for Power System Analysis},
+  journal = {Journal of Open Research Software},
+  volume  = {6},
+  number  = {1},
+  pages   = {4},
+  year    = {2018},
+  doi     = {10.5334/jors.188}
+}
+
+@article{highs,
+  author  = {Huangfu, Q. and Hall, J. A. J.},
+  title   = {Parallelizing the dual revised simplex method},
+  journal = {Mathematical Programming Computation},
+  volume  = {10},
+  number  = {1},
+  pages   = {119--142},
+  year    = {2018},
+  doi     = {10.1007/s12532-017-0130-5},
+  note    = {The algorithm behind the HiGHS solver used throughout.}
+}
+
+@misc{osm,
+  author       = {{OpenStreetMap contributors}},
+  title        = {{OpenStreetMap}},
+  year         = {2026},
+  howpublished = {\url{https://www.openstreetmap.org}},
+  note         = {Queried through the Overpass API for
+                  \texttt{power=substation} and \texttt{power=plant}.  Data
+                  licensed under the Open Database License (ODbL).}
+}
+
+% --- Weather and conversion -------------------------------------------------
+
+@misc{openmeteo,
+  author       = {{Open-Meteo}},
+  title        = {{Historical Weather API}},
+  year         = {2026},
+  howpublished = {\url{https://open-meteo.com/en/docs/historical-weather-api}},
+  note         = {Serves ERA5 on a 0.25\textdegree{} grid from 1940 and
+                  ERA5-Land on a 0.1\textdegree{} grid from 1950; no key, data
+                  under CC BY 4.0.  Refused by this environment's egress
+                  policy, so the pipeline in \texttt{profiles.py} has never
+                  run.}
+}
+
+@article{era5,
+  author  = {Hersbach, H. and others},
+  title   = {The {ERA5} global reanalysis},
+  journal = {Quarterly Journal of the Royal Meteorological Society},
+  volume  = {146},
+  number  = {730},
+  pages   = {1999--2049},
+  year    = {2020},
+  doi     = {10.1002/qj.3803}
+}
+
+@article{era5land,
+  author  = {Mu\~{n}oz-Sabater, J. and others},
+  title   = {{ERA5-Land}: a state-of-the-art global reanalysis dataset for land
+             applications},
+  journal = {Earth System Science Data},
+  volume  = {13},
+  number  = {9},
+  pages   = {4349--4383},
+  year    = {2021},
+  doi     = {10.5194/essd-13-4349-2021}
+}
+
+@article{staffell2016,
+  author  = {Staffell, I. and Pfenninger, S.},
+  title   = {Using bias-corrected reanalysis to simulate current and future
+             wind power output},
+  journal = {Energy},
+  volume  = {114},
+  pages   = {1224--1239},
+  year    = {2016},
+  doi     = {10.1016/j.energy.2016.08.068},
+  note    = {Source of the Gaussian smoothing that turns a single-turbine power
+             curve into a farm curve.}
+}
+
+@article{erbs1982,
+  author  = {Erbs, D. G. and Klein, S. A. and Duffie, J. A.},
+  title   = {Estimation of the diffuse radiation fraction for hourly, daily and
+             monthly-average global radiation},
+  journal = {Solar Energy},
+  volume  = {28},
+  number  = {4},
+  pages   = {293--302},
+  year    = {1982},
+  doi     = {10.1016/0038-092X(82)90302-4}
+}
+
+% --- Braess and network sensitivity -----------------------------------------
+
+@article{braess1968,
+  author  = {Braess, D.},
+  title   = {\"{U}ber ein {Paradoxon} aus der {Verkehrsplanung}},
+  journal = {Unternehmensforschung},
+  volume  = {12},
+  pages   = {258--268},
+  year    = {1968},
+  doi     = {10.1007/BF01918335}
+}
+
+@article{witthaut2012,
+  author  = {Witthaut, D. and Timme, M.},
+  title   = {{Braess's} paradox in oscillator networks, desynchronization and
+             power outage},
+  journal = {New Journal of Physics},
+  volume  = {14},
+  pages   = {083036},
+  year    = {2012},
+  doi     = {10.1088/1367-2630/14/8/083036}
+}
+
+@article{schafer2022,
+  author  = {Sch\"{a}fer, B. and Pesch, T. and Manik, D. and Gollenstede, J. and
+             Lin, G. and Beck, H.-P. and Witthaut, D. and Timme, M.},
+  title   = {Understanding {Braess'} paradox in power grids},
+  journal = {Nature Communications},
+  volume  = {13},
+  pages   = {5396},
+  year    = {2022},
+  doi     = {10.1038/s41467-022-32917-6},
+  note    = {Demonstrates Braess's paradox in an AC laboratory grid and gives a
+             topological predictor for it.  The closest published work to the
+             susceptibility matrix computed here.}
+}
+
+% --- Interconnectors and system operators -----------------------------------
+
+@misc{eirgrid_interconnection,
+  author       = {{EirGrid}},
+  title        = {{Interconnection}},
+  year         = {2026},
+  howpublished = {\url{https://www.eirgrid.ie/industry/interconnection}},
+  note         = {The East-West Interconnector: 500 MW, Portan (Co.\ Meath) to
+                  Shotton (Wales), in service 2012.}
+}
+
+@misc{soni,
+  author       = {{SONI}},
+  title        = {{What we do}},
+  year         = {2026},
+  howpublished = {\url{https://www.soni.ltd.uk/about/soni/}},
+  note         = {SONI is the transmission system operator for Northern
+                  Ireland; it operates the network but owns none of it.}
+}

@@ -12,3 +12,15 @@ __pycache__/
 .venv/
 graph-workshop/data/session1_state.npz
 graph-workshop/data/cache/
+
+# Profiles are derived from data/raw/weather and are 50 MB an hour-year;
+# rebuild them with `python profiles.py build` rather than committing them.
+data/profiles/
+
+# LaTeX build artefacts
+docs/report/*.aux
+docs/report/*.log
+docs/report/*.out
+docs/report/*.toc
+docs/report/*.bbl
+docs/report/*.blg
