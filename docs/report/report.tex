@@ -1,6 +1,8 @@
 \documentclass[11pt,a4paper]{article}
 \usepackage[margin=25mm, headheight=14pt]{geometry}
 \input{preamble}
+\usepackage[numbers,sort&compress]{natbib}
+\bibliographystyle{plainnat}
 
 \title{\vspace{-1.5cm}\bfseries The TYTFS 2024 study files as a PyPSA network\\[2mm]
 \large\mdseries\color{inksoft} What was built, what it was checked against,
@@ -24,6 +26,12 @@ Everything below is reproducible from the repository. Every number quoted is
 produced by code in it, and the sections say which function. Where something
 could not be done -- the real weather data is behind a blocked host -- that is
 stated rather than papered over.
+
+This revision is the result of a deliberate red-teaming pass over the first
+draft. Every external claim now carries a citation, every measured number was
+re-derived from the data, and Section~\ref{sec:corrections} lists the four
+things the first draft got wrong. One of them was a limitation that turned out
+to be false in the helpful direction.
 \end{abstract}
 
 \vspace{4mm}
@@ -42,6 +50,9 @@ stated rather than papered over.
 \item Two independent methods -- a DC flow on the 2024 network and a full LOPF
       on the 2033 network with synthetic weather -- pick out the \emph{same}
       binding circuit: Letterkenny--Strabane, 93~MVA, into Northern Ireland.
+\item The stated line lengths are \emph{real}: they correlate at $r = 0.983$
+      with the great-circle distance between independently geocoded endpoints.
+      The first draft of this report called them placeholders. It was wrong.
 \item 215 automated tests pass. Two of them check the linear algebra against
       things that do not share code with it.
 \end{itemize}
@@ -120,8 +131,9 @@ with the measurement it was made on.
 
 \subsection{The per-unit base: 100 MVA, read rather than assumed}
 
-Every case opens with \code{SBASE = 100.00} and \code{BASFRQ = 50}. The build
-asserts it and refuses a case on any other base -- a case on 200 MVA would
+Every case opens with \code{SBASE = 100.00} and \code{BASFRQ = 50}
+\citep{eirgrid_tytfs2024}. The build asserts it and refuses a case on any other
+base -- a case on 200 MVA would
 produce a network that solves and whose every impedance is out by exactly two.
 
 PSS/E gives impedances per-unit on that base and on the bus's kV. PyPSA wants
@@ -142,21 +154,36 @@ so there are two conversions:
 
 \where{pypsa\_net.py}{\_ohms(), \_siemens(), \_z\_on\_system\_base()}
 
-\subsection{\texorpdfstring{\code{RATE1} is the rating}{RATE1 is the rating}}
+\subsection{\texorpdfstring{\code{RATE1} is taken as the rating -- by inference}{RATE1 is taken as the rating - by inference}}
+\label{sec:rate}
 
-RATE1, RATE2 and RATE3 are populated; RATE4--RATE12 are empty everywhere. Two
-facts about the data settle what they are:
+RATE1, RATE2 and RATE3 are populated; RATE4--RATE12 are zero everywhere.
+
+\textbf{A caveat this report owes the reader.} PSS/E v35 carries up to twelve
+rating sets per branch, and Siemens' own manual -- which would say what, if
+anything, the format fixes about their meaning -- is not publicly available.
+Open-source readers of the format document the older three-rating
+\code{RATEA}/\code{RATEB}/\code{RATEC} layout without settling the semantics of
+the twelve-rating one \citep{powsybl_psse}. So what follows is an
+\emph{inference from the data}, not a documented property of the format, and
+the first draft of this report stated it as though it were the latter.
+
+Two facts about the data, measured across all four cases:
 
 \begin{itemize}
-\item \code{RATE1 == RATE2} in \textbf{all 1{,}129 branch records, in every
-      case}. Not approximately -- exactly.
-\item \code{RATE3/RATE1} takes exactly two values, 1.0 and 1.1.
+\item \code{RATE1 == RATE2} in \textbf{every one of the 4{,}841 branch records
+      across the four cases} (1{,}129 in WP2024, 1{,}120 in SV2024, 1{,}296 in
+      each 2033 case). Not approximately -- exactly.
+\item \code{RATE3/RATE1} is 1.0 or 1.1 in the two winter cases. In the two
+      summer cases 97 records come out at 1.10021 instead, which is a rating
+      that was rounded before it was written rather than a third convention.
 \end{itemize}
 
-That is the normal / long-term-emergency / short-term-emergency convention with
-the LTE set equal to the normal rating and the STE at 110\%. \code{s\_nom} is
-\code{RATE1}, the continuous rating. A test pins the equality, because if it
-ever stops holding the reasoning behind the choice has gone.
+The natural reading is the normal / long-term-emergency / short-term-emergency
+convention, with the LTE set equal to the normal rating and the STE at 110\%.
+\code{s\_nom} is \code{RATE1}, the most conservative of the three. If that
+reading is wrong, the direction of the error is known: \code{s\_nom} would be
+too small, and every loading figure here too high.
 
 \where{pypsa\_net.py}{CONTINUOUS\_RATE; test\_pypsa\_net.py $\rightarrow$ test\_rate2\_equals\_rate1}
 
@@ -168,8 +195,8 @@ the two, because it looks like a number: put into \code{s\_nom} it makes the
 element unusable and the optimisation infeasible.
 
 Looking at what they are settles the treatment. All eighteen have $R = 0$,
-$|X| \leq 0.01$, $B = 0$ and $\mathrm{LEN} = 0$. Every one is a station
-coupler: a busbar section, a capacitor or reactor stub, an SVC, a generator
+$|X| \leq 0.01$, $B = 0$ and $\mathrm{LEN} = 0$ -- as do all twenty in each
+2033 case, where the count is higher. Every one is a station coupler: a busbar section, a capacitor or reactor stub, an SVC, a generator
 terminal tie. Not one is a circuit whose rating was forgotten.
 
 \textbf{The rule, in two parts.} A coupler is bounded by what is attached to
@@ -206,14 +233,23 @@ model = pypsa_net.build(case, min_kv=0.0)                        # everything
 
 Moyle, EWIC and Greenlink become PyPSA \code{Link} components -- a controllable
 injection, not part of the linear AC network. Two of them have a far terminal
-created for them because the file does not model the GB side.
+created for them because the file does not model the GB side. All three are
+real HVDC links: Moyle (Scotland to Co.\ Antrim, in service 2001), the
+East-West Interconnector (Portan in Co.\ Meath to Shotton in Wales, 500 MW, in
+service 2012) and Greenlink (Great Island in Co.\ Wexford to Pembroke, in
+commercial operation from 2025) \citep{eirgrid_interconnection}. The file names
+the Greenlink terminal \code{GREENLINK}; OpenStreetMap names the converter
+station after the townland, Campile, and it sits 400~m from the Great Island
+220~kV substation -- which is why \file{geocode.py} carries that as a
+hand-written alias with its reasoning attached.
 
 \where{pypsa\_net.py}{INTERCONNECTORS, \_add\_links(), \_moyle\_efficiency()}
 
 \subsection{The reference bus, and the bug that found it}
 \label{sec:slack}
 
-The case names its own: five buses carry \code{IDE = 3}. The rule is to honour
+The case names its own: five buses carry \code{IDE = 3}, the PSS/E bus type
+code for a swing bus \citep{powsybl_psse}. The rule is to honour
 them where they survive the voltage floor, hand the role to whatever absorbed a
 swing bus that was aggregated away, and otherwise give it to the bus carrying
 the most in-service generation.
@@ -245,7 +281,9 @@ Angle correlation against the case's own solved angles: \textbf{0.90 before,
 \subsection{Verification}
 \label{sec:verify}
 
-\code{python pypsa\_net.py verify} runs all four cases at both scopes.
+\code{python pypsa\_net.py verify} runs all four cases at both scopes. The
+network object and its linear power flow are PyPSA's \citep{pypsa}; the
+optimisation is solved with HiGHS \citep{highs}.
 
 \begin{table}[H]\centering\small
 \begin{tabular}{llccrrl}
@@ -278,8 +316,9 @@ flow's angles would not track them.}
 
 Bus records have no coordinates and the only thing to join on is a
 twelve-character name. \file{geocode.py} downloads every named
-\code{power=substation} and \code{power=plant} on the island from Overpass --
-1{,}705 named objects -- and matches them against station names.
+\code{power=substation} and \code{power=plant} on the island from Overpass
+\citep{osm} -- 1{,}705 named objects, of which 1{,}270 carry a voltage tag and
+367 are tagged at 110~kV or above -- and matches them against station names.
 
 \textbf{Nothing is interpolated, averaged or guessed.} A station that cannot be
 matched gets no coordinate and is reported by name with the candidate it
@@ -288,10 +327,11 @@ rejected and why.
 \begin{figure}[H]\centering
 \includegraphics[width=\textwidth]{g_geocoding.png}
 \caption{Left: where the WP2024 transmission buses landed, coloured by how each
-was matched. Right: the cross-check. EirGrid publishes its own station layer,
-and 134 of the matched stations appear in both. The median disagreement is
-\textbf{14~metres} -- the difference between one corner of a substation and
-another -- and the 95th percentile is 252~metres.}
+was matched. Right: the cross-check against the station layer of EirGrid's own
+public Transmission Development Plan feature service
+\citep{eirgrid_tdp2024_service}; 134 of the matched stations appear in both.
+The median disagreement is \textbf{14~metres} -- the difference between one
+corner of a substation and another -- and the 95th percentile is 252~metres.}
 \label{fig:geocode}
 \end{figure}
 
@@ -340,6 +380,14 @@ guessed.
 
 \subsection{The one disagreement worth reporting}
 
+\emph{A caveat on the validator.} The same feature service is known to be
+incomplete on its \emph{line} layers -- its 400~kV layer holds only the western
+leg of Moneypoint--Oldstreet, and no circuit at all for the legs east of
+Oldstreet. \file{eirgrid.py} prints that warning. The station layer used here
+shows no such gap, and the cross-check is station-to-station, but a validator
+with a documented hole in it should be named as one.
+
+
 Of the 134 cross-checked stations, one is more than 5~km out: TANDRAGEE, at
 36.3~km. It is EirGrid's register that is wrong -- it puts the station at the
 Republic's end of the Louth--Tandragee 275~kV interconnector, in Co.~Louth,
@@ -353,10 +401,34 @@ OpenStreetMap.
 \section{The North-West region}
 \label{sec:northwest}
 
-EirGrid's Wind Dispatch Tool works on constraint groups. Groups 1--3 cover
-Donegal, Sligo and north Mayo -- a heavily wind-dominated region behind a
-narrow export path. \file{northwest.py} extracts it and reconciles it against a
-hand-built 15-node dataset.
+EirGrid and SONI run a Wind Dispatch Tool (WDT) in their control centres that
+applies MW limits to individual wind and solar farms, or to groups of them
+associated with a particular network constraint; the group definitions are
+published \citep{eirgrid_wdt2024}. The region studied here -- Donegal, Sligo
+and north Mayo -- is a heavily wind-dominated area behind a narrow export path,
+and the brief for this work identified it as WDT constraint groups 1--3.
+\file{northwest.py} extracts it and reconciles it against a hand-built 15-node
+dataset.
+
+\textbf{What the published groups actually are, and why it matters.} The
+February 2024 overview lists the North West groups as: 1, Letterkenny A1 busbar
+flows; 2, Letterkenny A2 busbar flows; 4, Carrick-on-Shannon to Arva; 5
+(outage-driven), Sliabh Bawn to Lanesboro; 6 (outage-driven), Binbane to
+Cathaleen's Fall; and 7, Corderry to Srananagh, retired after that circuit was
+uprated. The 2020 version numbered them differently again -- group 1 was
+Letterkenny to Clogher, group 2 Corderry to Srananagh
+\citep{eirgrid_wdt2020,eirgrid_wdt2024}. Two consequences. The station set
+studied here is clearly the right region: Letterkenny, Clogher, Binbane,
+Cathaleen's Fall, Corderry and Srananagh are all in it, and all appear in
+EirGrid's own group definitions. But the \emph{numbering} is not stable across
+versions, so ``groups 1--3'' does not by itself pin down a fixed set of
+stations, and nothing in this report should be read as reproducing a particular
+numbered group.
+
+I could not retrieve either overview document from this environment -- the
+hosts are refused by its egress policy -- so the group names above come from a
+search index of them rather than from the documents themselves. They should be
+checked against the PDFs before being quoted onward.
 
 \begin{figure}[H]\centering
 \includegraphics[width=0.82\textwidth]{i_northwest.png}
@@ -425,8 +497,11 @@ that is otherwise sound.
 
 \begin{enumerate}
 \item \textbf{The hydro capacities are all identically 38.} Cathaleen's Fall,
-      Cliff and Golagh have very different real capacities. 38 is almost
-      certainly the 38~kV connection voltage, entered into a capacity column.
+      Cliff and Golagh have very different real capacities -- Cathaleen's Fall
+      alone is two machines of 22.5 and 23~MW in the TYTFS file. 38 is the
+      38~kV connection voltage entered into a capacity column: 38~kV is a real
+      level in this system (278 buses carry it in WP2024), and Cathaleen's Fall
+      has a bus named \code{HY\_CATH FALL} sitting at exactly 38~kV.
 \item \textbf{The 24-node and 15-node blocks disagree by exactly Cunghill's
       35~MW.} One block includes it, the other does not.
 \item \textbf{The supply set is a correct subset, not a wrong dataset.} Every
@@ -457,8 +532,13 @@ meaningless.
 \bottomrule
 \end{tabular}
 \caption{The binding constraint is the Letterkenny--Strabane 110~kV tie into
-Northern Ireland, 93~MVA, and it binds at about 29\% of connected capacity.
-Srananagh does not even reverse into export until about 45\%.}
+Northern Ireland -- \code{3581-89516-1}, from Letterkenny (area 1, IE) to the
+Strabane phase-shifter bus (area 14, NI) -- and it binds at about 29\% of
+connected capacity. Srananagh does not even reverse into export until about
+45\%. \textbf{The rating is scenario-dependent}: \code{RATE1} on this circuit
+is 93~MVA in WP2024, the case this sweep runs on, but 80 in SV2024, 105 in
+SV2033 and 123 in WP2033. Quoting one number for it across scenarios, as the
+first draft of this report did, is wrong.}
 \label{tab:windy}
 \end{table}
 
@@ -468,6 +548,79 @@ comes back to it.
 
 \where{northwest.py}{windy(), boundary\_flows(), region\_flows()}
 
+\subsection{Both north-western cross-border ties have a phase shifter on them}
+\label{sec:pst}
+
+This came out of chasing a numerical discrepancy (Section~\ref{sec:kit}) and is
+worth stating on its own. Reading the transformer records directly:
+
+\begin{table}[H]\centering\small
+\begin{tabular}{lllr}
+\toprule
+\textbf{from} & \textbf{to} & \textbf{rating} & \textbf{shift} \\
+\midrule
+89510 STRABANE (NI) & 89515 STRA\_PST & 125 MVA & $17^\circ$ \\
+79010 ENNISKIL (NI) & 79015 ENNK\_PST & 125 MVA & $3^\circ$ \\
+\bottomrule
+\end{tabular}
+\caption{The only two phase-shifting transformers in the transmission network,
+in every one of the four cases. \code{PST} is the file's own naming.}
+\end{table}
+
+The circuit this report keeps returning to, \code{3581-89516-1}, runs from
+Letterkenny straight to \code{89516 STRA\_PST} -- so the binding element sits
+directly behind a phase shifter, which is the device a system operator installs
+precisely to control flow on a tie. The other north-western cross-border tie,
+Corraclassy to \code{79016 ENNK\_PST}, has one too.
+
+\textbf{This model holds both taps fixed.} That is a sharper and more honest
+statement of the limitation than the first draft's ``SONI would redispatch
+around it'': there is a specific, identified control device on the constrained
+path whose action is not modelled here.
+
+\where{psse.py}{read\_raw() $\rightarrow$ case.transformer, field ANG1}
+
+\subsection{The line lengths are real, and the first draft said otherwise}
+\label{sec:lengths}
+
+The first draft listed ``TYTFS line lengths are placeholders'' as a limitation.
+Checking it rather than repeating it:
+
+\begin{itemize}
+\item \textbf{83\% of transmission branches carry a non-zero length} (561 of
+      679 in WP2024), median 11.7~km, longest 208~km.
+\item Of the 118 that do not, \textbf{111 are couplers and stubs} with
+      $|X| \leq 0.01$, where a zero length is the correct value. Only seven are
+      real circuits missing a length, and six of those seven are in Northern
+      Ireland.
+\end{itemize}
+
+\begin{figure}[H]\centering
+\includegraphics[width=\textwidth]{j_lengths.png}
+\caption{Left: for the 420 circuits with a stated length and both ends
+independently geocoded, the stated length against the great-circle distance
+between the ends. $r = 0.983$, median ratio 1.17 -- a real route is a little
+longer than a straight line, which is exactly what this shows. Two datasets
+that share no source agreeing like this checks the geocoding as much as it
+checks the lengths. Right: reactance per km of stated length at 110~kV.}
+\label{fig:lengths}
+\end{figure}
+
+The right-hand panel is bimodal, and the split is physical rather than an
+artefact. The 347 circuits above 0.25~$\Omega$/km have a median of
+\textbf{0.394}~$\Omega$/km and a median shunt susceptance of
+0.00035~pu/km; the 117 below have a median of 0.13~$\Omega$/km and
+\textbf{0.011}~pu/km -- thirty times the charging. High capacitance and low
+reactance per km is the signature of underground cable, and the names in that
+cluster are Ringsend--Whitebank, Galway--Salthill, Marina--Trabeg: urban and
+coastal, where cable is what gets laid.
+
+Two things follow. The lengths are usable, with the seven gaps named. And
+\code{gridkit.OHMS\_PER\_KM = 0.4}, which the first draft called a rule of
+thumb, is within 2\% of the median of the overhead-line circuits in this very
+dataset -- so a new line costed off it is being costed off the file's own
+overhead-line population, which is worth saying instead.
+
 % ===================================================================
 \section{Time series: what is real and what is not}
 \label{sec:profiles}
@@ -476,11 +629,17 @@ TYTFS gives four snapshots. A constraint study needs hours.
 
 \subsection{The real pipeline, and why there is no real data}
 
-\file{profiles.py} is a complete Open-Meteo ERA5 pipeline: batched requests,
+\file{profiles.py} is a complete pipeline against Open-Meteo's Historical
+Weather API \citep{openmeteo}, which serves ECMWF's ERA5 reanalysis
+\citep{era5} on a 0.25\textdegree{} grid and the higher-resolution ERA5-Land
+\citep{era5land} on a 0.1\textdegree{} grid, without a key and under CC BY 4.0.
+It does batched requests,
 disk caching by cell-year so nothing is ever fetched twice, a stated power
-curve, a hub-height correction from the two ERA5 wind levels, a documented
-panel model, and a validation step against EirGrid's published all-island wind
-series.
+curve smoothed into a farm curve by Gaussian convolution after
+\citet{staffell2016}, a hub-height correction from the two ERA5 wind levels, a
+panel model using the Erbs diffuse-fraction correlation
+\citep{erbs1982}, and a validation step against EirGrid's published all-island
+wind series.
 
 \textbf{It has never run, because both hosts are refused by this environment's
 egress policy} -- 403 at CONNECT, before any request is made:
@@ -782,8 +941,11 @@ where $a_e = F_e/B_e$ is the effective angle difference across branch $e$
 (the plain angle difference, less any phase shift).
 
 The diagonal is the obvious part. The off-diagonal is where \textbf{Braess's
-paradox} lives: a positive entry means that strengthening $e'$ puts
-\emph{more} power on $e$. Power in a network is not routed, it is imposed --
+paradox} lives \citep{braess1968}: a positive entry means that strengthening
+$e'$ puts \emph{more} power on $e$. The effect is established in power networks
+specifically -- theoretically by \citet{witthaut2012}, and demonstrated on a
+real AC laboratory grid with a topological predictor by \citet{schafer2022}.
+Power in a network is not routed, it is imposed --
 it divides between parallel paths in inverse proportion to reactance, and
 nothing consults the ratings. Build a second circuit anywhere in a mesh and
 every impedance ratio in it changes.
@@ -809,8 +971,16 @@ reasonable planner might propose makes the binding constraint worse.
 \subsection{(f) Shift factors: the Wind Dispatch Tool calculation}
 
 For one monitored circuit, how much of each generator's output that circuit
-carries. Rank the generators by it and you have drawn a constraint group: the
-machines a dispatch instruction would have to act on.
+carries. Rank the generators by it and you have drawn something with the shape
+of a constraint group: the machines a dispatch instruction would have to act
+on.
+
+\textbf{``Reproducing EirGrid's WDT methodology'' overstates this, and the
+heading is the brief's wording rather than a claim.} EirGrid's published groups
+are defined by a monitored flow and are the product of contingency studies, an
+AC network, and the Northern Ireland system \citep{eirgrid_wdt2024}; what
+follows is a DC shift-factor ranking on one intact circuit. It is the right
+arithmetic and the wrong amount of it.
 
 \begin{figure}[H]\centering
 \includegraphics[width=\textwidth]{f_shift_factors_WP2033_all-island.png}
@@ -863,8 +1033,11 @@ method    & DC power flow, other ties pinned at the case's own values &
 profiles  & none -- a capacity-factor sweep & synthetic correlated weather \\
 scope     & the North-West region & the whole island \\
 \midrule
+rating of that circuit & 93 MVA (\code{RATE1} in WP2024) & 123 MVA
+            (\code{RATE1} in WP2033) \\
+\midrule
 \textbf{answer} & \multicolumn{2}{c}{\cellcolor{surface}\textbf{\code{3581-89516-1},
-Letterkenny--Strabane, 93 MVA into Northern Ireland}} \\
+Letterkenny to the Strabane phase-shifter bus}} \\
 \bottomrule
 \end{tabularx}
 \caption{Different network vintage, different method, different data, no shared
@@ -872,6 +1045,20 @@ code beyond the conversion itself. Same circuit. A single method that finds a
 constraint has found a property of its own assumptions until something else
 agrees with it.}
 \end{table}
+
+\textbf{How much this is worth, stated carefully.} The two methods share the
+conversion, the geocoding and the topology; they are independent in vintage,
+dispatch, profiles and scope, not in everything. And the agreement is partly
+structural: the region exports, and this is its narrowest export path, so a
+thermal-limit method was always likely to land here. What the agreement rules
+out is that the finding is an artefact of the synthetic weather or of the
+2033 build-out -- not that it is the constraint a control room would act on.
+
+Independent support from outside this work: EirGrid's two live North West
+constraint groups in February 2024 both monitor \emph{Letterkenny busbar flows}
+\citep{eirgrid_wdt2024}, and the circuit found here is one of the circuits on
+that busbar. That is corroboration of the area, not of the specific circuit,
+and Section~\ref{sec:northwest} explains why it cannot be more than that.
 
 \subsection{Most curtailment is not the network's fault}
 
@@ -1028,15 +1215,24 @@ percent on real flows, but it says nothing about voltage, reactive support or
 stability -- and a conclusion that depends on those is not supported by
 anything here.
 
-\textbf{Line lengths are placeholders.} The \code{LEN} field is zero or nominal
-on most branches. Impedances are real and come from the file; it is the
-impedances, not the lengths, that set the flows. Any per-km cost derived from
-these lengths is derived from a placeholder.
+\textbf{Line lengths are usable, with seven named gaps.} This corrects the
+first draft, which called them placeholders. 83\% of transmission branches
+carry a length; it correlates at $r = 0.983$ with the great-circle distance
+between independently geocoded endpoints; and reactance per km separates
+cleanly into overhead line and cable. Seven real circuits in WP2024 carry no
+length, six of them in Northern Ireland, and a per-km calculation should skip
+those rather than treat a zero as a distance. See Section~\ref{sec:lengths}.
 
-\textbf{Ratings are TYTFS \code{RATE1}, not operational limits.} A control room
+\textbf{Ratings are TYTFS \code{RATE1}, not operational limits, and the reading
+of \code{RATE1} is an inference.} See Section~\ref{sec:rate}: what the twelve
+PSS/E rating slots mean is not publicly documented, and the normal/LTE/STE
+reading here comes from the data's own structure. Beyond that, a control room
 works to seasonal, weather-dependent and often dynamic limits that are not in
-these files, and runs circuits above \code{RATE1} for defined periods.
-``100\% of rating'' here means 100\% of a planning number.
+these files, and runs circuits above the continuous rating for defined periods.
+``100\% of rating'' here means 100\% of a planning number, under an inferred
+interpretation of which column that is. Ratings also change between scenarios:
+the circuit this report follows is rated 80, 93, 105 and 123 MVA in the four
+cases.
 
 \textbf{Every time series is synthetic.} No hour in them ever happened. They
 are anchored so each network's own scenario hour reproduces the TYTFS state,
@@ -1046,7 +1242,10 @@ without a geocoded site borrow a neighbour's profile, which makes those pairs
 perfectly correlated when they should not be.
 
 \textbf{Costs are placeholders, and renewables bid negative.} Gas 90, biomass
-40, hydro 1, imports 150 EUR/MWh, wind and solar at $-1$. The negative bid is
+40, hydro 1, imports 150 EUR/MWh, wind and solar at $-1$. The load-shedding
+generators bid 10{,}000 EUR/MWh, which is a round number chosen to sit far above
+everything else, \emph{not} the Single Electricity Market's Value of Lost Load
+-- that was EUR 12{,}533/MWh for 2022 \citep{semc_voll2023}. The negative bid is
 deliberate -- it is how a support scheme makes a wind farm willing to pay to
 stay on, and it is what makes curtailment a last resort rather than a free
 choice. It also makes the objective negative, so only \emph{differences}
@@ -1061,11 +1260,15 @@ not label plant by technology. Any result turning on the split between
 minimum stable export, no market coupling. Interconnector flow here is what the
 cost assumptions make of it, not what the day-ahead market would do.
 
-\textbf{Only one circuit binds, and the far side is an infinite sink.} The
-model prices export to Northern Ireland at nothing beyond the tie's thermal
-limit. In reality SONI would redispatch around it. What the result establishes
-is that the profiles produce binding constraints and where -- not that any
-particular curtailment percentage is right.
+\textbf{Only one circuit binds, the far side is an infinite sink, and there is
+an unmodelled control device on the constrained path.} The model prices export
+to Northern Ireland at nothing beyond the tie's thermal limit. In reality SONI,
+the Northern Ireland transmission system operator \citep{soni}, would
+redispatch around it -- and, more specifically, the tie terminates at a
+$17^\circ$ phase-shifting transformer whose tap this model holds fixed
+(Section~\ref{sec:pst}). What the result establishes is that the profiles
+produce binding constraints and where, not that any particular curtailment
+percentage is right.
 
 \textbf{The TYTFS data is EirGrid's, provided for reference purposes only.} It
 describes a planning forecast, not the operational system, and is published
@@ -1073,6 +1276,69 @@ without warranty as to accuracy or fitness for any particular purpose. Nothing
 here is an EirGrid product or an EirGrid position.
 
 % ===================================================================
+\section{What this revision corrected, and what it could not check}
+\label{sec:corrections}
+
+The first version of this document was written from the working notes without
+re-deriving the numbers or sourcing the background. Four things were wrong.
+
+\begin{enumerate}[leftmargin=1.5em]
+
+\item \textbf{``Line lengths are placeholders.'' False, and usefully so.} 83\%
+of transmission branches carry a length and it correlates at $r = 0.983$ with
+independently geocoded endpoint distances (Section~\ref{sec:lengths}). This
+went from a limitation to a validation result -- and it incidentally validates
+the geocoding a second time.
+
+\item \textbf{``\code{RATE1 == RATE2} in all 1{,}129 branch records, in every
+case.''} 1{,}129 is the WP2024 count alone; the four cases have 1{,}129,
+1{,}120, 1{,}296 and 1{,}296, and the equality holds in all 4{,}841. The
+related claim that \code{RATE3/RATE1} ``takes exactly two values'' also missed
+97 summer-case records at 1.10021.
+
+\item \textbf{``RATE1, RATE2 and RATE3 are normal / LTE / STE'' asserted as a
+property of the PSS/E format.} It is an inference from this data. The format
+carries twelve rating slots and Siemens' manual is not public
+(Section~\ref{sec:rate}).
+
+\item \textbf{One rating quoted for a circuit whose rating is
+scenario-dependent.} \code{3581-89516-1} is 93 MVA in WP2024 and 123 in
+WP2033, and the cross-validation table compared a WP2024 result with a WP2033
+result under the WP2024 number.
+
+\end{enumerate}
+
+A fifth item is a reframing rather than an error: the report described the
+study region as ``WDT constraint groups 1--3'' because the brief did. EirGrid's
+published group numbering is not stable across versions, so that phrase does
+not identify a fixed set of stations (Section~\ref{sec:northwest}).
+
+\subsection{What could not be verified from here}
+
+Stated plainly, because a citation the author could not open is weaker than one
+they could.
+
+\begin{itemize}
+\item \textbf{Every EirGrid, SONI and SEM-O host is refused by this
+      environment's egress policy}, as are \texttt{arxiv.org} and
+      \texttt{nature.com}. So the TYTFS 2024 landing page, both Wind Dispatch
+      Tool overviews and the SEM VoLL paper are cited as located publications;
+      their contents reached this document through a search index, not through
+      the documents. The WDT group names in Section~\ref{sec:northwest} are the
+      claim most exposed to that, and they should be checked against the PDF.
+\item \textbf{The PSS/E format itself.} Siemens' manual is not public. The
+      bus \code{IDE} codes are corroborated by an independent open-source
+      reader \citep{powsybl_psse}; the rating semantics are not corroborated by
+      anything, which is why they are presented as an inference.
+\item \textbf{Nothing in the TYTFS files was checked against the physical
+      system.} Where this report says a circuit is rated at 93 MVA, it means
+      the file says so.
+\end{itemize}
+
+Everything not in this list -- every table of measurements, every figure, every
+count -- is produced by code in the repository and was re-derived for this
+revision.
+
 \section{Where everything is}
 
 \begin{table}[H]\centering\small
@@ -1097,8 +1363,9 @@ here is an EirGrid product or an EirGrid position.
 \file{participant-kit/examples/}    & --- & six scripts, a to f \\
 \midrule
 \multicolumn{3}{l}{\color{inksoft}\textit{this document}} \\
-\file{docs/report\_figures.py}  & 276 & figures 1, 2 and 4 \\
+\file{docs/report\_figures.py}  & 361 & the figures the kit does not draw \\
 \file{docs/report/report.tex}   & --- & the source of this report \\
+\file{docs/report/references.bib} & --- & 19 sources, each checked \\
 \midrule
 \multicolumn{3}{l}{\color{inksoft}\textit{the long-form working notes}} \\
 \file{docs/PHASE2\_PYPSA.md}    & 605 & every conversion decision, with its evidence \\
@@ -1115,10 +1382,13 @@ and where a number here has a longer story, that is where it is.}
 \noindent\textbf{Reproducing every figure in this document.}
 
 \begin{lstlisting}[language=shell]
-python docs/report_figures.py                 # figures 1, 2, 4
+python docs/report_figures.py                 # the four repo figures
 cd participant-kit
-for e in examples/*.py; do python "$e"; done   # figures 3, 5-9
-cd ../docs/report && pdflatex report.tex
+for e in examples/*.py; do python "$e"; done   # the six kit figures
+cd ../docs/report && ./build.sh                # pdflatex, bibtex, pdflatex x2
 \end{lstlisting}
+
+\clearpage
+\bibliography{references}
 
 \end{document}

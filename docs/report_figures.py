@@ -31,6 +31,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(
     os.path.dirname(os.path.abspath(__file__))), "participant-kit"))
 import plotstyle                                          # noqa: E402
 import psse                                               # noqa: E402
+import pypsa_net                                          # noqa: E402
 import synthetic                                          # noqa: E402
 import northwest                                          # noqa: E402
 import gridkit                                            # noqa: E402
@@ -254,6 +255,80 @@ def _label_without_collisions(fig, ax, points, fontsize=7):
                 color=plotstyle.INK_SOFT).get_window_extent(renderer=renderer))
 
 
+def lengths():
+    """Are the TYTFS line lengths real?  Check them against the geocoding.
+
+    This figure exists because the first draft of the report asserted that the
+    lengths were placeholders.  They are not: 83% of transmission branches
+    carry one, and where both ends are independently geocoded the stated
+    length tracks the great-circle distance closely.  Two datasets that share
+    no source agreeing is the strongest evidence available here - and it
+    checks the geocoding as much as it checks the lengths.
+    """
+    geo = pd.read_csv("data/pypsa/geocoding/TYTFS2024_WP2024_V35.csv")
+    geo = geo[geo["lat"].notna()]
+    lat = dict(zip(geo["bus"].astype(int), geo["lat"]))
+    lon = dict(zip(geo["bus"].astype(int), geo["lon"]))
+
+    case = psse.read_raw(CASE)
+    kv = dict(zip(case.bus["I"].astype(int), case.bus["BASKV"]))
+    branch = case.branch.copy()
+    branch["kv0"] = branch["I"].astype(int).map(kv)
+    branch["kv1"] = branch["J"].astype(int).map(kv)
+    branch = branch[(branch["kv0"] >= 110) & (branch["kv1"] >= 110)
+                    & (branch["LEN"] > 0)]
+
+    rows = []
+    for _, r in branch.iterrows():
+        i, j = int(r["I"]), int(r["J"])
+        if i in lat and j in lat:
+            d = _km(lat[i], lon[i], lat[j], lon[j])
+            if d > 0.5:                       # same-site pairs say nothing
+                rows.append({"stated": float(r["LEN"]), "straight": d,
+                             "kv": float(r["kv0"]),
+                             "ohm_per_km": pypsa_net._ohms(float(r["X"]),
+                                                           float(r["kv0"]))
+                             / float(r["LEN"])})
+    frame = pd.DataFrame(rows)
+
+    fig, (left, right) = plt.subplots(1, 2, figsize=(10.4, 4.8))
+    for ax in (left, right):
+        ax.set_axisbelow(True)
+
+    left.scatter(frame["straight"], frame["stated"], s=14,
+                 color=plotstyle.CATEGORICAL[0], alpha=0.6, linewidths=0)
+    top = float(max(frame["straight"].max(), frame["stated"].max())) * 1.05
+    left.plot([0, top], [0, top], color=plotstyle.INK_MUTED, linewidth=1.0,
+              linestyle=(0, (4, 2)), zorder=0)
+    left.set_xlim(0, top); left.set_ylim(0, top)
+    left.set_xlabel("great-circle distance between the geocoded ends (km)")
+    left.set_ylabel("length stated in the TYTFS file (km)")
+    left.set_title(f"{len(frame)} circuits: r = "
+                   f"{frame['stated'].corr(frame['straight']):.3f}", fontsize=10)
+    left.annotate("dashed line is a perfectly straight route;\n"
+                  "real circuits sit above it",
+                  (0.04, 0.95), xycoords="axes fraction", va="top",
+                  fontsize=8, color=plotstyle.INK_SOFT)
+
+    per_km = frame[frame["kv"] == 110.0]["ohm_per_km"]
+    right.hist(per_km, bins=np.linspace(0, 0.8, 41),
+               color=plotstyle.CATEGORICAL[0])
+    median = float(per_km.median())
+    right.axvline(median, color=plotstyle.STATUS["serious"], linewidth=1.8)
+    right.annotate(f"median {median:.3f} $\\Omega$/km",
+                   (median, right.get_ylim()[1] * 0.92), xytext=(8, 0),
+                   textcoords="offset points", fontsize=9,
+                   color=plotstyle.INK)
+    right.set_xlabel("reactance per km of stated length, 110 kV circuits "
+                     "($\\Omega$/km)")
+    right.set_ylabel("circuits")
+    right.set_title("impedance and length are consistent with each other",
+                    fontsize=10)
+
+    fig.tight_layout()
+    return _save(fig, "j_lengths")
+
+
 def _save(fig, stem):
     os.makedirs(OUT, exist_ok=True)
     path = os.path.join(OUT, f"{stem}.png")
@@ -267,6 +342,7 @@ def main() -> int:
     plotstyle.use()
     gridkit.quiet()
     geocoding()
+    lengths()
     correlation()
     north_west()
     return 0
