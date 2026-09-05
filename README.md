@@ -57,7 +57,8 @@ layer alone for anything that needs the 400 kV backbone to be whole.
 | `geocode.py` | Coordinates for the 110 kV+ buses, matched against OpenStreetMap substations, with a stated method for every match and a stated reason for every failure. |
 | `northwest.py` | The North-West subnetwork — Wind Dispatch Tool constraint groups 1–3 — extracted in two views, and reconciled node by node against the hand-built dataset in `data/handbuilt/`. See [docs/PHASE3_NORTHWEST.md](docs/PHASE3_NORTHWEST.md). |
 | `profiles.py` | Hourly wind and solar profiles for the fleet, from ERA5 via Open-Meteo, plus the demand shape from EirGrid's dashboard and the validation against its published wind series. See [docs/PHASE4_PROFILES.md](docs/PHASE4_PROFILES.md). |
-| `test_network.py`, `test_psse.py`, `test_pypsa_net.py`, `test_geocode.py`, `test_northwest.py`, `test_profiles.py` | Regression tests, mostly guarding things that would silently move a published number. |
+| `synthetic.py` | Deterministic hourly profiles generated from the case alone — spatially correlated wind, anchored on the four TYTFS states. Insurance against an unreachable Open-Meteo, and the way to build counterfactuals no reanalysis year contains. See [docs/SYNTHETIC_DATA.md](docs/SYNTHETIC_DATA.md). |
+| `test_network.py`, `test_psse.py`, `test_pypsa_net.py`, `test_geocode.py`, `test_northwest.py`, `test_profiles.py`, `test_synthetic.py` | Regression tests, mostly guarding things that would silently move a published number. |
 
 ## Running it
 
@@ -107,6 +108,16 @@ which is reachable from a sandboxed session — see
 python profiles.py fetch --year 2023      # ERA5, ~6 requests for the island
 python profiles.py build --year 2023      # p_max_pu per generator
 python profiles.py validate --year 2023 --actual <eirgrid wind export>
+```
+
+The synthetic generator needs nothing but the case file, and is what to reach
+for when the two hosts above are unreachable or when the scenario wanted is
+one no historical year contains:
+
+```bash
+python synthetic.py check      # wind correlation against distance
+python synthetic.py build      # p_max_pu and demand for a full year
+python synthetic.py binding    # does WP2033 produce binding constraints?
 ```
 
 Each stage caches into `data/raw/` and skips itself if the cache is there, so
