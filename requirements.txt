@@ -13,4 +13,5 @@ pypsa>=1.0       # the network model the TYTFS cases are converted into
 highspy          # the LP solver pypsa_net.py verifies the LOPF with
 rapidfuzz        # geocode.py: name matching against OpenStreetMap
 openpyxl         # northwest.py: reading the hand-built node list
+# profiles.py needs only requests, numpy and pandas, all already above.
 pytest

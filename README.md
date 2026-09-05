@@ -56,7 +56,8 @@ layer alone for anything that needs the 400 kV backbone to be whole.
 | `pypsa_net.py` | Those cases as PyPSA networks, transmission-only or whole, exported as PyPSA CSV folders with a report table per decision. See [docs/PHASE2_PYPSA.md](docs/PHASE2_PYPSA.md). |
 | `geocode.py` | Coordinates for the 110 kV+ buses, matched against OpenStreetMap substations, with a stated method for every match and a stated reason for every failure. |
 | `northwest.py` | The North-West subnetwork — Wind Dispatch Tool constraint groups 1–3 — extracted in two views, and reconciled node by node against the hand-built dataset in `data/handbuilt/`. See [docs/PHASE3_NORTHWEST.md](docs/PHASE3_NORTHWEST.md). |
-| `test_network.py`, `test_psse.py`, `test_pypsa_net.py`, `test_geocode.py`, `test_northwest.py` | Regression tests, mostly guarding things that would silently move a published number. |
+| `profiles.py` | Hourly wind and solar profiles for the fleet, from ERA5 via Open-Meteo, plus the demand shape from EirGrid's dashboard and the validation against its published wind series. See [docs/PHASE4_PROFILES.md](docs/PHASE4_PROFILES.md). |
+| `test_network.py`, `test_psse.py`, `test_pypsa_net.py`, `test_geocode.py`, `test_northwest.py`, `test_profiles.py` | Regression tests, mostly guarding things that would silently move a published number. |
 
 ## Running it
 
@@ -96,6 +97,16 @@ python pypsa_net.py build                                     # data/pypsa/
 python pypsa_net.py verify                                    # DC PF and LOPF
 python northwest.py verify                                    # the NW region
 python northwest.py balance                                   # against nodes.xlsx
+```
+
+Turning the four snapshots into a year needs two public sources, neither of
+which is reachable from a sandboxed session — see
+[docs/PHASE4_PROFILES.md](docs/PHASE4_PROFILES.md) §0:
+
+```bash
+python profiles.py fetch --year 2023      # ERA5, ~6 requests for the island
+python profiles.py build --year 2023      # p_max_pu per generator
+python profiles.py validate --year 2023 --actual <eirgrid wind export>
 ```
 
 Each stage caches into `data/raw/` and skips itself if the cache is there, so
