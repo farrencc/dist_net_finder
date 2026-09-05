@@ -55,7 +55,8 @@ layer alone for anything that needs the 400 kV backbone to be whole.
 | `psse.py` | EirGrid's TYTFS 2024 PSS/E v35 load-flow cases: a raw-format reader returning one DataFrame per section. See [docs/PHASE1_PARSER.md](docs/PHASE1_PARSER.md). |
 | `pypsa_net.py` | Those cases as PyPSA networks, transmission-only or whole, exported as PyPSA CSV folders with a report table per decision. See [docs/PHASE2_PYPSA.md](docs/PHASE2_PYPSA.md). |
 | `geocode.py` | Coordinates for the 110 kV+ buses, matched against OpenStreetMap substations, with a stated method for every match and a stated reason for every failure. |
-| `test_network.py`, `test_psse.py`, `test_pypsa_net.py`, `test_geocode.py` | Regression tests, mostly guarding things that would silently move a published number. |
+| `northwest.py` | The North-West subnetwork — Wind Dispatch Tool constraint groups 1–3 — extracted in two views, and reconciled against a hand-built 15-node dataset. See [docs/PHASE3_NORTHWEST.md](docs/PHASE3_NORTHWEST.md). |
+| `test_network.py`, `test_psse.py`, `test_pypsa_net.py`, `test_geocode.py`, `test_northwest.py` | Regression tests, mostly guarding things that would silently move a published number. |
 
 ## Running it
 
@@ -93,6 +94,7 @@ download, both of which are already here:
 python geocode.py match data/TYTFS2024_studyfiles/*_V35.raw   # bus coordinates
 python pypsa_net.py build                                     # data/pypsa/
 python pypsa_net.py verify                                    # DC PF and LOPF
+python northwest.py verify                                    # the NW region
 ```
 
 Each stage caches into `data/raw/` and skips itself if the cache is there, so
@@ -114,6 +116,7 @@ the commands are safe to re-run and there is no order to remember.
 | `{kilkenny,mayo,dublin_city,dublin_county}_power.{png,gpkg}` | The four areas examined in detail. |
 | `pypsa/<case>_<scope>/` | Each TYTFS case as a PyPSA CSV folder, transmission-only and whole, with a `reports/` table for every conversion decision. |
 | `pypsa/geocoding/<case>.csv` | Where each 110 kV+ bus is, how it was matched, and why the unmatched ones were not. |
+| `pypsa/northwest_<case>_<view>/` | The North-West region, 20 stations as TYTFS has them and 15 with generation folded into parents, with the circuit table and the boundary flows. |
 | `osm_substations.csv` | The 1,705 named OSM substations and power plants the matching runs against. |
 
 ## Four things worth knowing before you read the numbers

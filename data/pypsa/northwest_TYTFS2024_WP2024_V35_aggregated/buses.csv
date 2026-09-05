@@ -1,0 +1,16 @@
+name,v_nom,control,station_buses,folds_in
+Ardnagappary,110.0,PQ,1571,
+Binbane,110.0,PQ,1341,
+Cathaleen's Fall,110.0,PQ,"1701,1761,17010,17061",Cliff
+Clogher,110.0,PQ,"2801,2870,2871,4091,28019,28710,28712",Golagh+Mulreavy
+Corderry,110.0,PQ,1631,
+Corraclassy,110.0,PQ,1981,
+Croaghonagh,110.0,PQ,51911,
+Drumkeen,110.0,PQ,"2321,4071",Meentycat
+Letterkenny,110.0,PQ,"3581,3591,35861,35862",Lenalea
+Sligo,110.0,PQ,"4981,49861",
+Sorne Hill,110.0,PQ,4991,
+Srananagh 110,110.0,PQ,5041,
+Srananagh 220,220.0,Slack,5042,
+Tievebrack,110.0,PQ,5191,
+Trillick,110.0,PQ,5361,
