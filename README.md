@@ -53,7 +53,9 @@ layer alone for anything that needs the 400 kV backbone to be whole.
 | `analysis.py` | The five measurements FINDINGS.md is built on. |
 | `extract_web_data.py`, `extract_web_base.py`, `build_web_map.py` | The interactive Leaflet map of the distribution layer. |
 | `psse.py` | EirGrid's TYTFS 2024 PSS/E v35 load-flow cases: a raw-format reader returning one DataFrame per section. See [docs/PHASE1_PARSER.md](docs/PHASE1_PARSER.md). |
-| `test_network.py`, `test_psse.py` | Regression tests, mostly guarding things that would silently move a published number. |
+| `pypsa_net.py` | Those cases as PyPSA networks, transmission-only or whole, exported as PyPSA CSV folders with a report table per decision. See [docs/PHASE2_PYPSA.md](docs/PHASE2_PYPSA.md). |
+| `geocode.py` | Coordinates for the 110 kV+ buses, matched against OpenStreetMap substations, with a stated method for every match and a stated reason for every failure. |
+| `test_network.py`, `test_psse.py`, `test_pypsa_net.py`, `test_geocode.py` | Regression tests, mostly guarding things that would silently move a published number. |
 
 ## Running it
 
@@ -84,6 +86,15 @@ python extract_web_base.py       # county and Northern Ireland outlines
 python build_web_map.py          # data/ireland_distribution_map.html
 ```
 
+The PyPSA networks are built from the TYTFS study files and one Overpass
+download, both of which are already here:
+
+```bash
+python geocode.py match data/TYTFS2024_studyfiles/*_V35.raw   # bus coordinates
+python pypsa_net.py build                                     # data/pypsa/
+python pypsa_net.py verify                                    # DC PF and LOPF
+```
+
 Each stage caches into `data/raw/` and skips itself if the cache is there, so
 the commands are safe to re-run and there is no order to remember.
 
@@ -101,6 +112,9 @@ the commands are safe to re-run and there is no order to remember.
 | `missing_cable.json` | Lower bound on missing MV cable, from OSM's own asset counts. |
 | `county_sweep.csv` | All 26 counties: mapped density per km², normalised. |
 | `{kilkenny,mayo,dublin_city,dublin_county}_power.{png,gpkg}` | The four areas examined in detail. |
+| `pypsa/<case>_<scope>/` | Each TYTFS case as a PyPSA CSV folder, transmission-only and whole, with a `reports/` table for every conversion decision. |
+| `pypsa/geocoding/<case>.csv` | Where each 110 kV+ bus is, how it was matched, and why the unmatched ones were not. |
+| `osm_substations.csv` | The 1,705 named OSM substations and power plants the matching runs against. |
 
 ## Four things worth knowing before you read the numbers
 

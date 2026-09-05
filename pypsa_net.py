@@ -1068,8 +1068,7 @@ def for_optimisation(network):
     demand and not a dispatch decision.
     """
     n = network.copy()
-    for component in ("Generator", "Link"):
-        frame = n.static(component)
+    for frame in (n.generators, n.links):
         if "p_set" in frame.columns:
             frame["p_set"] = np.nan
     return n
@@ -1241,16 +1240,52 @@ DEFAULT_PATTERN = "data/TYTFS2024_studyfiles/*_V35.raw"
 DEFAULT_OUT = "data/pypsa"
 
 
-def run_build(paths: list[str], out: str, scopes: list[str]) -> None:
-    """Build and export each case at each scope."""
+def run_build(paths: list[str], out: str, scopes: list[str],
+              geocode: bool = True) -> None:
+    """Build and export each case at each scope.
+
+    Coordinates are written onto the buses if ``geocode.py`` has already
+    produced them; a bus it could not place keeps its NaN, and the network is
+    exported either way.  The geocoding is a separate step because it needs
+    the network, and because it should be possible to look at what it did
+    before it is baked into anything.
+    """
     for path in paths:
         case = psse.read_raw(path)
+        matches = None
+        if geocode:
+            import geocode as geocode_module
+            found = os.path.join(geocode_module.GEOCODING_DIR,
+                                 f"{case.name}.csv")
+            if os.path.exists(found):
+                matches = pd.read_csv(found)
+            else:
+                print(f"(no coordinates for {case.name}: run "
+                      f"`python geocode.py match` first)")
         for scope in scopes:
             min_kv = TRANSMISSION_KV if scope == "transmission" else 0.0
             model = build(case, min_kv=min_kv)
+            if matches is not None:
+                _place(model, matches)
             directory = os.path.join(out, f"{case.name}_{scope}")
             export(model, directory)
-            print(f"{model!r}\n  -> {directory}")
+            placed = int(model.network.buses["x"].notna().sum())
+            print(f"{model!r}\n  -> {directory}"
+                  + (f"  ({placed} buses placed)" if matches is not None
+                     else ""))
+
+
+def _place(model: Model, matches: pd.DataFrame) -> None:
+    """Write geocoded coordinates onto a built network's buses."""
+    placed = matches[matches["lat"].notna()]
+    lon = dict(zip(placed["bus"].astype(str), placed["lon"]))
+    lat = dict(zip(placed["bus"].astype(str), placed["lat"]))
+    how = dict(zip(placed["bus"].astype(str), placed["method"]))
+    n = model.network
+    n.buses["x"] = [lon.get(b, np.nan) for b in n.buses.index]
+    n.buses["y"] = [lat.get(b, np.nan) for b in n.buses.index]
+    n.buses["geocode_method"] = [how.get(b, "") for b in n.buses.index]
+    model.reports["geocoding"] = matches
 
 
 def run_verify(paths: list[str], scopes: list[str], solver: str) -> int:
@@ -1299,13 +1334,16 @@ def main(argv=None) -> int:
                        default="both")
         if cmd == "build":
             s.add_argument("--out", default=DEFAULT_OUT)
+            s.add_argument("--no-geocode", action="store_true",
+                           help="export without bus coordinates")
         else:
             s.add_argument("--solver", default="highs")
     args = p.parse_args(argv)
     scopes = (["transmission", "full"] if args.scope == "both"
               else [args.scope])
     if args.cmd == "build":
-        run_build(args.paths, args.out, scopes)
+        run_build(args.paths, args.out, scopes,
+                  geocode=not args.no_geocode)
         return 0
     return run_verify(args.paths, scopes, args.solver)
 

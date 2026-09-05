@@ -5,3 +5,4 @@ reports/severed.csv,0,every element dropped because at least one end is below th
 reports/slack.csv,4,the reference bus of each AC sub-network and why it was chosen
 reports/links.csv,4,"the interconnectors, their ratings, and which of the case's two representations each came from"
 reports/orphans.csv,0,"records whose bus survived neither the floor nor the aggregation, and so were dropped outright"
+reports/geocoding.csv,542,"bus coordinates from OpenStreetMap, with the match method and confidence for each, and a reason for each failure"
