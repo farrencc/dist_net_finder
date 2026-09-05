@@ -48,18 +48,23 @@ def model(case):
 # The region
 # --------------------------------------------------------------------------- #
 
-def test_the_two_views_have_20_and_15_stations():
-    assert len(m.station_table("native")) == 20
+def test_the_two_views_have_24_and_15_stations():
+    """nodes.xlsx holds both: a 24-row list and a 15-row folded one."""
+    assert len(m.station_table("native")) == 24
     assert len(m.station_table("aggregated")) == 15
 
 
-def test_the_aggregated_view_folds_exactly_the_five_named_stations():
+def test_the_aggregated_view_folds_exactly_what_nodes_xlsx_folds():
     assert m.FOLDED == {
         "Cliff": "Cathaleen's Fall",
         "Golagh": "Clogher",
         "Mulreavy": "Clogher",
         "Meentycat": "Drumkeen",
         "Lenalea": "Letterkenny",
+        "Garvagh": "Corderry",
+        "Cunghill": "Sligo",
+        "Tawnaghmore": "Moy",
+        "Srananagh 110": "Srananagh 220",
     }
 
 
@@ -71,16 +76,19 @@ def test_every_region_bus_is_a_real_bus_at_the_right_voltage(case):
             assert float(kv[bus]) == station.kv, (station.name, bus)
 
 
-def test_srananagh_is_both_voltages_with_a_transformer_between(case):
-    native = m.bus_map("native")
+def test_srananagh_is_two_busbars_natively_and_one_node_folded(case):
+    native, folded = m.bus_map("native"), m.bus_map("aggregated")
     assert native[5041] == "Srananagh 110"
     assert native[5042] == "Srananagh 220"
-    frame = m.circuits(case, "native")
-    tx = frame[frame["kind"] == "transformer"]
+    assert folded[5041] == folded[5042] == "Srananagh 220"
+    tx = m.circuits(case, "native")
+    tx = tx[tx["kind"] == "transformer"]
     assert len(tx) == 1
     assert set(tx.iloc[0][["from", "to"]]) == {"Srananagh 110",
                                                "Srananagh 220"}
     assert tx.iloc[0]["rate1_mva"] == 250.0
+    # nodes.xlsx has one Srananagh node, so the transformer is inside it.
+    assert (m.circuits(case, "aggregated")["kind"] == "transformer").sum() == 0
 
 
 def test_the_srananagh_transformer_is_three_winding_with_an_idle_tertiary(case):
@@ -105,27 +113,27 @@ def test_the_aggregated_view_is_15_stations_on_16_routes(case):
     assert len(m.routes(frame)) == 16
 
 
-def test_but_tytfs_has_19_circuits_on_those_16_routes(case):
+def test_tytfs_has_19_circuits_on_those_16_routes(case):
     """The disagreement: three of the routes are double circuits."""
     frame = m.circuits(case, "aggregated")
-    assert len(frame) == 19          # 18 lines and the Srananagh transformer
+    assert len(frame) == 19
     doubled = m.routes(frame)
     doubled = doubled[doubled["circuits"] > 1]
     assert set(doubled["route"]) == {
         "Cathaleen's Fall - Clogher",
-        "Cathaleen's Fall - Srananagh 110",
-        "Sligo - Srananagh 110",
+        "Cathaleen's Fall - Srananagh 220",
+        "Sligo - Srananagh 220",
     }
     assert (doubled["circuits"] == 2).all()
 
 
-def test_the_native_view_has_24_circuits_on_21_routes(case):
-    """23 lines and the Srananagh transformer."""
+def test_the_native_view_has_29_circuits_on_25_routes(case):
+    """28 lines and the Srananagh transformer."""
     frame = m.circuits(case, "native")
-    assert len(frame) == 24
-    assert (frame["kind"] == "line").sum() == 23
+    assert len(frame) == 29
+    assert (frame["kind"] == "line").sum() == 28
     assert (frame["kind"] == "transformer").sum() == 1
-    assert len(m.routes(frame)) == 21
+    assert len(m.routes(frame)) == 25
 
 
 def test_folding_lenalea_moves_a_circuit_rather_than_removing_it(case):
@@ -157,21 +165,20 @@ def test_couplers_inside_a_station_are_not_circuits(case):
 # The boundary
 # --------------------------------------------------------------------------- #
 
-def test_the_region_has_eight_ties_and_is_not_radial(case):
+def test_the_region_has_six_ties_and_is_not_radial(case):
     """Srananagh is the principal export path, not the only one."""
     ties = m.boundary(case, "native")
-    assert len(ties) == 8
+    assert len(ties) == 6
     assert set(ties["outside_name"]) == {
-        "ARIGNA_T", "GARVAGH", "ENNK_PST", "GORTAWEE", "STRA_PST",
-        "CUNGHILL", "FLAGFORD"}
+        "ARIGNA_T", "CORRACLASSY", "STRA_PST", "BELLACORICK", "FLAGFORD"}
     assert (ties["station"] == m.SLACK_STATION).sum() == 1
 
 
-def test_two_of_the_ties_leave_the_jurisdiction(case):
-    """Letterkenny to Strabane and Corraclassy to Enniskillen."""
+def test_one_of_the_ties_leaves_the_jurisdiction(case):
+    """Letterkenny to Strabane, in Co. Tyrone."""
     ties = m.boundary(case, "native")
-    northern = ties[ties["outside_name"].isin(("STRA_PST", "ENNK_PST"))]
-    assert len(northern) == 2
+    northern = ties[ties["outside_name"] == "STRA_PST"]
+    assert len(northern) == 1
     area = case.bus.set_index("I")["AREA"]
     for bus in northern["outside_bus"]:
         assert int(area[int(bus)]) in psse.NI_AREAS
@@ -183,20 +190,29 @@ def test_two_of_the_ties_leave_the_jurisdiction(case):
 
 def test_capacity_dispatch_and_demand_are_three_different_numbers(case):
     frame = m.balance(case, "aggregated")
-    assert frame["capacity_mw"].sum() == pytest.approx(771.06, abs=0.5)
+    assert frame["capacity_mw"].sum() == pytest.approx(1154.76, abs=0.5)
     assert frame["dispatched_mw"].sum() == pytest.approx(69.3, abs=0.5)
-    assert frame["demand_mw"].sum() == pytest.approx(185.76, abs=0.5)
+    assert frame["demand_mw"].sum() == pytest.approx(212.64, abs=0.5)
 
 
-def test_the_region_imports_in_every_published_case():
-    """None of the four cases is a high-wind case, so none of them shows the
-    export the region is constrained for."""
+def test_no_published_case_runs_the_region_s_fleet():
+    """None of the four is a high-wind case, so none shows the export the
+    region is constrained for.
+
+    Two of them export - by 23 and 35 MW, against more than a gigawatt of
+    connected capacity - and two import. What they have in common is that
+    between 6% and 21% of the fleet's capacity is dispatched.
+    """
     if not os.path.exists(WP2024):
         pytest.skip("TYTFS study files not present")
     pytest.importorskip("pypsa")
     for name, c in psse.read_all().items():
+        frame = m.balance(c, "aggregated")
+        share = frame["dispatched_mw"].sum() / frame["capacity_mw"].sum()
+        assert 0.0 <= share < 0.25, (name, share)
         ties = m.boundary_flows(c, "native")
-        assert ties["into_region_mw"].sum() > 0, name
+        assert abs(ties["into_region_mw"].sum()) < 0.2 * \
+            frame["capacity_mw"].sum(), name
 
 
 # --------------------------------------------------------------------------- #
@@ -206,15 +222,19 @@ def test_the_region_imports_in_every_published_case():
 def test_the_native_extract_reproduces_the_full_network(case, model):
     """Same impedances, same injections, a different reference bus."""
     agreement = m.compare_with_full(case, "native", model=model)
-    assert len(agreement) == 23
+    assert len(agreement) == 28
     assert agreement["difference_mw"].abs().max() < 0.02
 
 
-def test_the_aggregated_extract_costs_a_couple_of_megawatts(case, model):
-    """The price of the 15-node topology, measured rather than asserted."""
+def test_the_aggregated_extract_costs_twenty_megawatts(case, model):
+    """The price of the 15-node topology, measured rather than asserted.
+
+    Almost all of it is one fold: nodes.xlsx has a single Srananagh node, so
+    the 250 MVA 220/110 kV transformer is inside it and its impedance is gone.
+    """
     agreement = m.compare_with_full(case, "aggregated", model=model)
     worst = agreement["difference_mw"].abs().max()
-    assert 0.5 < worst < 3.0
+    assert 15.0 < worst < 30.0
 
 
 def test_both_views_solve(case, model):

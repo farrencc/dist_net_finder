@@ -73,15 +73,22 @@ class Station:
     note: str = ""
 
 
-#: The North-West, station by station.  ``parent`` is set on the five stations
-#: the hand-built dataset folds away; everything else stands in both views.
+#: The North-West, station by station, as ``nodes.xlsx`` has it.  ``parent``
+#: is set on the nine stations the 15-node view folds away; everything else
+#: stands in both views.  The hand-built file holds both views itself - a
+#: 24-node list with generation as nodes of its own, and a "substation-only
+#: nodal representation" of 15 - and these are those two lists, with the one
+#: correction Phase 3 found: Clady is not in TYTFS, and TYTFS splits Srananagh
+#: into two busbars that the hand-built file has as one node.
 STATIONS = (
     # -- the export path ---------------------------------------------------- #
     Station("Srananagh 220", (5042,), 220.0,
             note="the region's connection to the 220 kV network, and the "
-                 "boundary this extraction slacks at"),
-    Station("Srananagh 110", (5041,), 110.0,
-            note="the 110 kV side of the same station"),
+                 "boundary this extraction slacks at.  nodes.xlsx has one "
+                 "Srananagh node, at 220 kV, so the 110 kV busbar folds into "
+                 "it and the transformer becomes internal"),
+    Station("Srananagh 110", (5041,), 110.0, parent="Srananagh 220",
+            note="TYTFS's 110 kV busbar at the same station"),
     # -- the Erne ----------------------------------------------------------- #
     Station("Cathaleen's Fall", (1701, 17010, 17061), 110.0,
             note="two 110 kV busbars (1701 CATH_FALL, 17010 CATH FALL) and a "
@@ -93,7 +100,8 @@ STATIONS = (
     Station("Binbane", (1341,), 110.0),
     Station("Tievebrack", (5191,), 110.0),
     Station("Ardnagappary", (1571,), 110.0,
-            note="the Gweedore-area 110 kV station; see the note on Clady"),
+            note="nodes.xlsx folds Clady into this station; TYTFS has no "
+                 "Clady bus at any voltage - see the reconciliation"),
     Station("Clogher", (2870, 2871, 28710, 28712), 110.0,
             note="four 110 kV busbars at one site, joined by zero-impedance "
                  "couplers"),
@@ -109,15 +117,24 @@ STATIONS = (
     Station("Trillick", (5361,), 110.0),
     Station("Sorne Hill", (4991,), 110.0),
     # -- the southern edge -------------------------------------------------- #
-    Station("Corraclassy", (1981,), 110.0),
     Station("Corderry", (1631,), 110.0),
+    Station("Garvagh", (2671,), 110.0, parent="Corderry"),
     Station("Sligo", (4981, 49861), 110.0, note="with its capacitor"),
+    Station("Cunghill", (1931,), 110.0, parent="Sligo"),
+    # -- north Mayo --------------------------------------------------------- #
+    Station("Glenree", (4371,), 110.0),
+    Station("Moy", (4041, 40461, 40462), 110.0, note="with its two capacitors"),
+    Station("Tawnaghmore", (5241, 5251), 110.0, parent="Moy",
+            note="Tawnaghmore and its second busbar TAWN_B"),
 )
 
-#: The five stations the hand-built dataset folds, and where each one goes.
-#: Every one is a generation connection point whose only 110 kV neighbour is
-#: its parent, except Lenalea, which also reaches Tievebrack - noted in the
-#: reconciliation because folding it moves a circuit rather than removing one.
+#: The stations the hand-built dataset folds, and where each one goes.  Most
+#: are generation connection points whose only 110 kV neighbour is the parent,
+#: so folding them moves an injection and removes a dead end.  Three are not:
+#: Lenalea sits between Letterkenny and Tievebrack, Cunghill between Sligo and
+#: Glenree, and Srananagh's 110 kV busbar between the 220 kV one and half the
+#: region.  Folding those three moves a circuit rather than removing one, and
+#: that is where the aggregated view's flow error comes from.
 FOLDED = {s.name: s.parent for s in STATIONS if s.parent}
 
 VIEWS = ("native", "aggregated")
@@ -365,6 +382,117 @@ def balance(case: psse.Case, view: str = "aggregated") -> pd.DataFrame:
     frame = pd.DataFrame(rows)
     frame["net_mw"] = frame["dispatched_mw"] - frame["demand_mw"]
     return frame.sort_values("capacity_mw", ascending=False).reset_index(
+        drop=True)
+
+
+# --------------------------------------------------------------------------- #
+# The hand-built dataset
+#
+# nodes.xlsx holds both views itself, one under the other in a single sheet:
+# a 24-row list with generation as nodes of its own, then a header row reading
+# "Substation-only nodal representation", then the 15-row list with generation
+# folded into the substation it hangs off.  Both are read here, because the
+# 24-row one is the only place the folding is written down.
+# --------------------------------------------------------------------------- #
+
+HANDBUILT = "data/handbuilt/nodes.xlsx"
+
+#: The hand-built name for a station, where it differs from the one used here.
+HANDBUILT_ALIASES = {"Srananagh": "Srananagh 220"}
+
+
+def handbuilt(path: str = HANDBUILT) -> tuple[pd.DataFrame, pd.DataFrame]:
+    """The 24-node and 15-node tables from ``nodes.xlsx``.
+
+    Returns ``(detailed, folded)``.  ``detailed`` has one row per node with
+    its type, its capacity and - for the generation nodes - the substation it
+    is assigned to.  ``folded`` has one row per substation with a supply and a
+    demand capacity.
+    """
+    raw = pd.read_excel(path)
+    raw.columns = ["node_type", "node_name", "capacity", "assigned_to"]
+    split = raw.index[raw["node_type"].astype(str).str.startswith(
+        "Substation-only")]
+    cut = int(split[0]) if len(split) else len(raw)
+
+    detailed = raw.iloc[:cut].copy()
+    detailed = detailed[detailed["node_name"].notna()]
+    detailed["capacity"] = pd.to_numeric(detailed["capacity"],
+                                         errors="coerce")
+
+    folded = raw.iloc[cut + 2:].copy()
+    folded.columns = ["node_type", "station", "supply_mw", "demand_mw"]
+    folded = folded[folded["station"].notna()]
+    for column in ("supply_mw", "demand_mw"):
+        folded[column] = pd.to_numeric(folded[column], errors="coerce")
+    folded["station"] = folded["station"].replace(HANDBUILT_ALIASES)
+    return detailed.reset_index(drop=True), folded.reset_index(drop=True)
+
+
+def reconcile(case: psse.Case, path: str = HANDBUILT) -> pd.DataFrame:
+    """The hand-built table against TYTFS, station by station.
+
+    Supply is compared against **capacity** - the sum of ``PT`` over every
+    machine at the station, in service or not - because that is what a
+    hand-built "supply capacity" column means.  Comparing it against a case's
+    dispatch would be comparing a fleet with a winter-peak security run, and
+    the answer would be a factor of ten.
+    """
+    _, folded = handbuilt(path)
+    mine = balance(case, "aggregated")
+    merged = folded.merge(mine, on="station", how="outer")
+    merged["supply_difference_mw"] = (merged["capacity_mw"]
+                                      - merged["supply_mw"])
+    merged["demand_difference_mw"] = (merged["demand_mw_y"]
+                                      - merged["demand_mw_x"]) \
+        if "demand_mw_y" in merged else np.nan
+    merged = merged.rename(columns={"demand_mw_x": "handbuilt_demand_mw",
+                                    "demand_mw_y": "tytfs_demand_mw",
+                                    "supply_mw": "handbuilt_supply_mw",
+                                    "capacity_mw": "tytfs_capacity_mw"})
+    return merged[["station", "handbuilt_supply_mw", "tytfs_capacity_mw",
+                   "supply_difference_mw", "handbuilt_demand_mw",
+                   "tytfs_demand_mw", "demand_difference_mw", "machines",
+                   "dispatched_mw"]].sort_values("station").reset_index(
+                       drop=True)
+
+
+def reconcile_plants(case: psse.Case, path: str = HANDBUILT) -> pd.DataFrame:
+    """Each generation node of the 24-node list against TYTFS's own station.
+
+    The hand-built file names nine generation sites and assigns each to a
+    substation.  This is what TYTFS has at the same place, and it is where the
+    reconciliation is most informative: four of the nine agree to within 1%,
+    and the three hydro entries agree with nothing.
+    """
+    detailed, _ = handbuilt(path)
+    plants = detailed[detailed["assigned_to"].notna()].copy()
+    homes = _homes(case, "native")
+    register = case.generator.copy()
+    register["station"] = register["I"].astype(int).map(homes)
+    by_station = register.groupby("station")["PT"].agg(["sum", "size"])
+
+    rows = []
+    for _, plant in plants.iterrows():
+        station = HANDBUILT_ALIASES.get(plant["node_name"],
+                                        plant["node_name"])
+        here = by_station.loc[station] if station in by_station.index else None
+        rows.append({
+            "handbuilt_node": plant["node_name"],
+            "type": plant["node_type"],
+            "assigned_to": plant["assigned_to"],
+            "handbuilt_mw": float(plant["capacity"]),
+            "tytfs_station": station if here is not None else "",
+            "tytfs_capacity_mw": float(here["sum"]) if here is not None
+            else 0.0,
+            "tytfs_machines": int(here["size"]) if here is not None else 0,
+        })
+    frame = pd.DataFrame(rows)
+    frame["difference_mw"] = (frame["tytfs_capacity_mw"]
+                              - frame["handbuilt_mw"])
+    frame["ratio"] = (frame["tytfs_capacity_mw"]
+                      / frame["handbuilt_mw"].replace(0, np.nan))
+    return frame.sort_values("handbuilt_mw", ascending=False).reset_index(
         drop=True)
 
 
@@ -662,8 +790,12 @@ def verify(case: psse.Case, view: str = "native", solver: str = "highs",
         result["dc_pf"] = "solved"
         result["max_loading"] = float(
             (flows.abs() / n.lines["s_nom"]).max())
-        result["srananagh_export_mw"] = float(
-            -n.transformers_t.p0.loc["now"].iloc[0])
+        # Only the native view has a Srananagh transformer to measure: the
+        # 15-node view has one Srananagh node, so the transformer is inside
+        # it and its flow is not a variable any more.
+        if len(n.transformers):
+            result["srananagh_export_mw"] = float(
+                -n.transformers_t.p0.loc["now"].iloc[0])
     except Exception as exc:                                # noqa: BLE001
         result["dc_pf"] = f"failed: {type(exc).__name__}: {exc}"
 
