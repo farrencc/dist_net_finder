@@ -231,3 +231,41 @@
   note         = {SONI is the transmission system operator for Northern
                   Ireland; it operates the network but owns none of it.}
 }
+
+% --- The coverage study's sources -------------------------------------------
+
+@misc{geofabrik,
+  author       = {{Geofabrik GmbH}},
+  title        = {{OpenStreetMap} data extract: {Ireland and Northern Ireland}},
+  year         = {2026},
+  howpublished = {\url{https://download.geofabrik.de/europe/ireland-and-northern-ireland.html}},
+  note         = {The file read is
+                  \texttt{ireland-and-northern-ireland-latest.osm.pbf}, 392 MB,
+                  dated 2026-08-28, MD5
+                  \texttt{e6fa4fd2707d7c05388e288c8f5ff94d}. Geofabrik
+                  republishes it continuously, so a later run fetches a newer
+                  extract and the OpenStreetMap-derived figures move slightly.
+                  Data under the Open Database License (ODbL).}
+}
+
+@misc{osi_counties,
+  author       = {{Ordnance Survey Ireland}},
+  title        = {{Counties}: {OSi} national statutory boundaries},
+  year         = {2024},
+  howpublished = {\url{https://services6.arcgis.com/MmUrOQU5v1he9gfS/arcgis/rest/services/Counties_OSi_Ireland/FeatureServer/0}},
+  note         = {Served by Esri Ireland. Used to attribute features to
+                  counties and to draw them.}
+}
+
+@misc{esb_network,
+  author       = {{ESB Networks}},
+  title        = {Our network},
+  year         = {2026},
+  howpublished = {\url{https://www.esbnetworks.ie/about-us/company/our-network}},
+  note         = {The published asset counts used as denominators in
+                  Section 3: 150,000 km of overhead line, 22,000 km of
+                  underground cable, 2.1 million poles, 242,000 pole-mounted
+                  transformers, 21,680 ground substations and 571 primary
+                  stations. Quoted as published and not independently
+                  checked.}
+}
