@@ -144,35 +144,35 @@ totals to compare against, and two could not be reached.
 \toprule
 \textbf{source} & \textbf{what it is and how it arrives} & \textbf{read by} \\
 \midrule
-TYTFS 2024 study files &
+\href{https://cms.eirgrid.ie/all-island-ten-year-transmission-forecast-statement-2024}{TYTFS 2024 study files} &
 EirGrid and SONI's four published PSS/E v35 load-flow cases for the all-island
 system. Committed to \file{data/TYTFS2024\_studyfiles/}, so nothing is fetched
 at run time. &
 \file{psse.py} \\
 \addlinespace
-Transmission Development Plan 2024 &
+\href{https://services-eu1.arcgis.com/1VGs4Se8lewgdzfE/arcgis/rest/services/TDP_2024_Web_Map_PUBLIC/FeatureServer}{Transmission Development Plan 2024} &
 EirGrid's own asset register, published as an anonymous ArcGIS feature
 service. Three layers: overhead line, underground cable, stations. Downloaded
 page by page and cached as a GeoPackage. &
 \file{eirgrid.py} \\
 \addlinespace
-OpenStreetMap national extract &
+\href{https://download.geofabrik.de/europe/ireland-and-northern-ireland.html}{OpenStreetMap national extract} &
 Geofabrik's island-wide extract, 392~MB, checksum verified, then filtered
 down to the 761{,}470 objects carrying a \code{power} tag. &
 \file{network.py} \\
 \addlinespace
-OpenStreetMap substations &
+\href{https://www.openstreetmap.org}{OpenStreetMap substations} &
 Every named \code{power=substation} and \code{power=plant} on the island, from
 the Overpass API. 1{,}705 objects, committed as
 \file{data/osm\_substations.csv}. &
 \file{geocode.py} \\
 \addlinespace
-County boundaries &
+\href{https://services6.arcgis.com/MmUrOQU5v1he9gfS/arcgis/rest/services/Counties_OSi_Ireland/FeatureServer/0}{County boundaries} &
 The 26 Republic of Ireland counties, from Ordnance Survey Ireland's statutory
 boundary service via Esri Ireland. &
 \file{eirgrid.py} \\
 \addlinespace
-ESB Networks asset counts &
+\href{https://www.esbnetworks.ie/about-us/company/our-network}{ESB Networks asset counts} &
 Published headline figures for the distribution network. Used only as
 denominators, never as geometry. &
 \file{analysis.py} \\
@@ -182,7 +182,7 @@ Three spreadsheets supplied with the brief, describing the North-West region
 as 24 and then 15 nodes. Committed unchanged to \file{data/handbuilt/}. &
 \file{northwest.py} \\
 \addlinespace
-ERA5 through Open-Meteo &
+\href{https://open-meteo.com/en/docs/historical-weather-api}{ERA5 through Open-Meteo} &
 Reanalysis weather, which would supply real hourly wind and solar. \textbf{Never fetched}: the host is refused by
 this environment's egress policy. &
 \file{profiles.py} \\
@@ -299,7 +299,7 @@ OpenStreetMap data is under the Open Database Licence.
 \subsection{ESB Networks' published totals}
 
 ESB Networks is the distribution system operator for the Republic. Its own
-website publishes headline asset counts: 150{,}000~km of overhead line,
+\href{https://www.esbnetworks.ie/about-us/company/our-network}{website publishes headline asset counts}: 150{,}000~km of overhead line,
 22{,}000~km of underground cable, 2.1 million poles, 242{,}000 pole-mounted
 transformers, 21{,}680 ground-mounted substations and 571 primary stations. None of that is geometry and none of it is used as
 geometry. It is used once, as the denominator that turns ``OpenStreetMap
@@ -726,9 +726,9 @@ are populated here and RATE4 to RATE12 are zero everywhere.
 
 \textbf{A caveat this report owes the reader.} Siemens' own manual, which would
 say what the format fixes about their meaning, is not publicly available.
-Open-source readers document the older three-rating layout without settling the
-semantics of the twelve-rating one. What follows is an
-inference from the data.
+\href{https://powsybl.readthedocs.io/projects/powsybl-core/en/latest/grid_exchange_formats/psse/}{Open-source readers} document the older three-rating layout without settling
+the semantics of the twelve-rating one. What follows is an inference from the
+data.
 
 Two facts, measured across all four cases and re-derived for this draft:
 
@@ -840,7 +840,7 @@ reason.
 
 All three are real links. Moyle runs from Scotland to Co.\ Antrim and has been
 in service since 2001. The East-West Interconnector runs from Portan in
-Co.\ Meath to Shotton in Wales, 500~MW, in service since 2012. Greenlink runs
+Co.\ Meath to Shotton in Wales, \href{https://www.eirgrid.ie/industry/interconnection}{500~MW}, in service since 2012. Greenlink runs
 from Great Island in Co.\ Wexford to Pembroke and entered commercial operation
 in 2025. The file names the last of these
 \code{GREENLINK}; OpenStreetMap names the converter station after the townland,
@@ -899,8 +899,8 @@ angle check below centres on the median.
 \label{sec:verify}
 
 \code{python pypsa\_net.py verify} runs all four cases at both scopes. The
-network object and its linear power flow are PyPSA's; the
-optimisation is solved with HiGHS.
+network object and its linear power flow are \href{https://doi.org/10.5334/jors.188}{PyPSA's}; the optimisation is solved
+with \href{https://doi.org/10.1007/s12532-017-0130-5}{HiGHS}.
 
 \begin{table}[H]\centering\small
 \begin{tabular}{llccrrl}
@@ -979,7 +979,7 @@ rejected and the reason.
 \includegraphics[width=\textwidth]{g_geocoding.png}
 \caption{Left: where the WP2024 transmission buses landed, coloured by how each
 was matched. Right: the cross-check against the station layer of EirGrid's own
-Transmission Development Plan service. 134 of
+\href{https://services-eu1.arcgis.com/1VGs4Se8lewgdzfE/arcgis/rest/services/TDP_2024_Web_Map_PUBLIC/FeatureServer}{Transmission Development Plan service}. 134 of
 the matched stations appear in both, at a median separation of
 \textbf{14~metres}, which is the difference between one corner of a substation
 and another. The 95th percentile is 252~metres.}
@@ -1128,7 +1128,7 @@ dataset's own overhead-line population.
 EirGrid and SONI run a Wind Dispatch Tool in their control centres, which
 applies megawatt limits to individual wind and solar farms or to groups of them
 associated with a particular network constraint. The group definitions are
-published. The region studied here is Donegal, Sligo
+\href{https://cms.eirgrid.ie/sites/default/files/publications/Wind-Dispatch-Tool-Constraint-Group-Overview_0.pdf}{published}. The region studied here is Donegal, Sligo
 and north Mayo: heavily wind-dominated, behind a narrow export path, and
 identified in the brief as constraint groups 1 to 3.
 
@@ -1137,7 +1137,7 @@ February 2024 overview lists the North West groups as Letterkenny A1 busbar
 flows, Letterkenny A2 busbar flows, Carrick-on-Shannon to Arva, two
 outage-driven groups covering Sliabh Bawn to Lanesboro and Binbane to
 Cathaleen's Fall, and Corderry to Srananagh, which was retired after that
-circuit was uprated. The 2020 version numbered them differently: group 1 was
+circuit was uprated. The \href{https://www.sem-o.com/sites/semo/files/documents/wind-dispatch-tool-constraint-groups.pdf}{2020 version} numbered them differently: group 1 was
 Letterkenny to Clogher and group 2 Corderry to Srananagh.
 
 Two consequences. The station set studied here is clearly the right region:
@@ -1373,8 +1373,10 @@ network is constrained needs a year, and the year has to have weather in it.
 
 \subsection{The pipeline that could not run}
 
-\file{profiles.py} is a complete pipeline against Open-Meteo's historical
-weather API, which serves ECMWF's ERA5 reanalysis on a 0.25\textdegree{} grid and the higher-resolution ERA5-Land on a 0.1\textdegree{} grid, without a key and under CC BY 4.0.
+\file{profiles.py} is a complete pipeline against \href{https://open-meteo.com/en/docs/historical-weather-api}{Open-Meteo's historical weather API},
+which serves ECMWF's \href{https://doi.org/10.1002/qj.3803}{ERA5 reanalysis} on a 0.25\textdegree{} grid and the
+higher-resolution \href{https://doi.org/10.5194/essd-13-4349-2021}{ERA5-Land} on a 0.1\textdegree{} grid, without a key
+and under CC BY 4.0.
 
 Reanalysis is the right source for one specific reason. Calm anticyclones and
 storm fronts are hundreds of kilometres across and cross Ireland in hours, so
@@ -1386,8 +1388,8 @@ the atmosphere actually did.
 The module does batched requests, caches on disk by grid cell and year so
 nothing is fetched twice, computes an hourly shear exponent from the two ERA5
 wind levels instead of assuming one, smooths a stated turbine power curve into
-a farm curve by Gaussian convolution, runs a panel
-model using the Erbs diffuse-fraction correlation, allocates
+a farm curve by \href{https://doi.org/10.1016/j.energy.2016.08.068}{Gaussian convolution}, runs a panel model using the
+\href{https://doi.org/10.1016/0038-092X(82)90302-4}{Erbs diffuse-fraction correlation}, allocates
 the island demand across buses in proportion to each bus's own load, and
 validates the modelled fleet against EirGrid's published all-island wind
 series.
@@ -1775,11 +1777,10 @@ susceptance gives the full edge-to-edge response matrix:
 where $a_e = F_e/B_e$ is the effective angle difference across branch $e$, that
 is the plain angle difference less any phase shift.
 
-The diagonal is the obvious part. The off-diagonal is where \textbf{Braess's
-paradox} lives: a positive entry means that strengthening
+The diagonal is the obvious part. The off-diagonal is where \href{https://doi.org/10.1007/BF01918335}{\textbf{Braess's paradox}} lives: a positive entry means that strengthening
 $e'$ puts more power on $e$. The effect is established in power networks
-specifically, both theoretically and on a real AC laboratory grid with a
-topological predictor. Power in a network is
+specifically, both \href{https://doi.org/10.1088/1367-2630/14/8/083036}{theoretically} and on a real AC laboratory grid with a
+\href{https://doi.org/10.1038/s41467-022-32917-6}{topological predictor}. Power in a network is
 imposed rather than routed. It divides between parallel paths in inverse
 proportion to reactance, and nothing consults the ratings, so building a second
 circuit anywhere in a mesh changes every impedance ratio in it.
@@ -1809,7 +1810,8 @@ carries. Rank the generators by it and the result has the shape of a constraint
 group: the machines a dispatch instruction would have to act on.
 
 \textbf{Calling this a reproduction of EirGrid's methodology would overstate
-it}, and the heading above comes from the brief's own wording. EirGrid's published groups are defined by a monitored flow and are
+it}, and the heading above comes from the brief's own wording. EirGrid's
+\href{https://cms.eirgrid.ie/sites/default/files/publications/Wind-Dispatch-Tool-Constraint-Group-Overview_0.pdf}{published groups} are defined by a monitored flow and are
 the product of contingency studies, an AC network and the Northern Ireland
 system. What follows is a DC shift-factor ranking on
 one intact circuit. It is the right arithmetic and a smaller amount of it.
@@ -1876,7 +1878,8 @@ build-out. It does not establish that this is the constraint a control room
 would act on.
 
 Independent support from outside this work: EirGrid's two live North West
-constraint groups in February 2024 both monitor Letterkenny busbar flows, and the circuit found here is one of the circuits on
+\href{https://cms.eirgrid.ie/sites/default/files/publications/Wind-Dispatch-Tool-Constraint-Group-Overview_0.pdf}{constraint groups} in February 2024 both monitor Letterkenny busbar
+flows, and the circuit found here is one of the circuits on
 that busbar. That corroborates the area rather than the specific circuit, and
 Section~\ref{sec:northwest} explains why it cannot be more than that.
 
@@ -2077,7 +2080,7 @@ figure.
 40, hydro 1 and imports 150~EUR/MWh, with wind and solar at $-1$. The
 load-shedding generators bid 10{,}000~EUR/MWh, a round number chosen to sit far
 above everything else. It carries no relation to the Single Electricity
-Market's Value of Lost Load, which was EUR 12{,}533/MWh for 2022.
+Market's \href{https://www.semcommittee.com/publications/sem-23-072-calculation-single-value-lost-load-within-single-electricity-market}{Value of Lost Load}, which was EUR 12{,}533/MWh for 2022.
 The negative bid is deliberate, because it is how a support scheme makes a wind
 farm willing to pay to stay on, and it makes dispatch-down a last resort
 rather than a free choice. It also makes the objective negative, so only differences
@@ -2095,7 +2098,7 @@ cost assumptions make of it rather than what the day-ahead market would do.
 \textbf{One circuit binds, the far side is an infinite sink, and there is an
 unmodelled control device on the constrained path.} The model prices export to
 Northern Ireland at nothing beyond the tie's thermal limit. In reality SONI,
-the Northern Ireland transmission system operator, would redispatch
+the \href{https://www.soni.ltd.uk/about-us/what-we-do}{Northern Ireland transmission system operator}, would redispatch
 around it, and the tie terminates behind a phase-shifting transformer whose tap
 this model holds fixed (Section~\ref{sec:pst}). What the result establishes is
 that the profiles produce binding constraints and where, not that any
@@ -2148,8 +2151,15 @@ carries the sentence ``Line lengths are placeholders'', which
 Section~\ref{sec:lengths} showed to be wrong. That file should be corrected to
 match.
 
-\subsection{What could not be verified from here}
+\subsection{How sources are cited, and what could not be verified from here}
 
+This report carries no bibliography. Every source is a link on the phrase that
+names it, so a reader can go straight to the thing being claimed rather than to
+an entry that asserts the thing exists. That is deliberate: a bibliography can
+carry an entry nobody ever resolved, and a link either opens or it does not.
+Every link in this document was checked to resolve before it was written in.
+
+What checking a link does not establish is that its contents were read here.
 Stated plainly, because a source the author could not open is weaker than one
 they could.
 
@@ -2157,13 +2167,14 @@ they could.
 \item \textbf{Every EirGrid, SONI and SEM-O host is refused by this
       environment's egress policy}, as are the reanalysis and dashboard hosts.
       So the study file landing page, both Wind Dispatch Tool overviews and the
-      Value of Lost Load paper are named as located publications; their
+      Value of Lost Load paper are linked as located publications; their
       contents reached this document through a search index rather than through
-      the documents themselves. The group names in Section~\ref{sec:northwest} are the
-      claim most exposed to that.
+      the documents themselves. The group names in Section~\ref{sec:northwest}
+      are the claim most exposed to that.
 \item \textbf{The PSS/E format itself.} Siemens' manual is not public. The bus
-      type codes are corroborated by an independent open-source reader; the rating semantics are not corroborated by
-      anything, which is why they are presented as an inference.
+      type codes are corroborated by an \href{https://powsybl.readthedocs.io/projects/powsybl-core/en/latest/grid_exchange_formats/psse/}{independent open-source reader};
+      the rating semantics are not corroborated by anything, which is why they
+      are presented as an inference.
 \item \textbf{Nothing in the study files was checked against the physical
       system.} Where this report says a circuit is rated at 93~MVA, it means
       the file says so.
