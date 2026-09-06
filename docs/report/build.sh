@@ -1,7 +1,6 @@
 #!/bin/sh
 # Build the report: pdflatex three times, so the table of contents and the
-# cross-references settle.  The report carries no bibliography, so there is
-# no bibtex pass.
+# cross-references settle.
 #
 # Needs pdflatex with booktabs, listings, hyperref, geometry, microtype,
 # xcolor, caption, titlesec, fancyhdr, tabularx, enumitem and float.
