@@ -62,11 +62,11 @@ def main(scenario="WP2033", scope="all-island"):
     # negative before anything else happens.  Only the *difference* between
     # two objectives means anything here, so that is what gets reported.
     base_cost = _solve(n, "baseline")
-    base_curtailed = _curtailed_gwh(n)
+    base_down = _dispatch_down_gwh(n)
     base_short = gridkit.unserved(n).sum()
     hot = gridkit.binding(n)
     print(f"\nbaseline: {base_cost:,.0f} EUR of operating cost, "
-          f"{base_curtailed:,.1f} GWh curtailed, "
+          f"{base_down:,.1f} GWh dispatched down, "
           f"{len(hot)} circuits at their rating for at least one hour")
 
     m = gridkit.load(scenario, scope)
@@ -99,13 +99,13 @@ def main(scenario="WP2033", scope="all-island"):
     print("  (the optimiser minimised operating + build together, so the net "
           "is non-negative\n   by construction - what is worth reading is "
           "which projects it picked, and in what order)")
-    print(f"\ncurtailment {base_curtailed:,.1f} -> {_curtailed_gwh(m):,.1f} GWh"
-          f" over the week")
+    print(f"\ndispatch-down {base_down:,.1f} -> "
+          f"{_dispatch_down_gwh(m):,.1f} GWh over the week")
     if base_short > 1e-6:
         print(f"unserved energy {base_short:,.1f} -> "
               f"{gridkit.unserved(m).sum():,.1f} MWh")
 
-    _draw(built_lines, built_storage, base_curtailed, _curtailed_gwh(m),
+    _draw(built_lines, built_storage, base_down, _dispatch_down_gwh(m),
           scenario, scope)
     return 0
 
@@ -180,12 +180,12 @@ def _built_storage(network, names):
     }).sort_values("p_nom_mw", ascending=False)
 
 
-def _curtailed_gwh(network):
-    lost = gridkit.curtailment(network)
-    return float(lost["curtailed_mwh"].sum() / 1000.0) if len(lost) else 0.0
+def _dispatch_down_gwh(network):
+    lost = gridkit.dispatch_down(network)
+    return float(lost["dispatch_down_mwh"].sum() / 1000.0) if len(lost) else 0.0
 
 
-def _draw(lines, storage, curtailed_before, curtailed_after, scenario, scope):
+def _draw(lines, storage, down_before, down_after, scenario, scope):
     os.makedirs(FIGURES, exist_ok=True)
     fig, (left, right) = plt.subplots(1, 2, figsize=(10.0, 5.0),
                                       width_ratios=(1.7, 1.0))
@@ -224,7 +224,7 @@ def _draw(lines, storage, curtailed_before, curtailed_after, scenario, scope):
         left.set_axis_off()
     left.set_title(f"{scenario} {scope}: what the optimiser built")
 
-    values = [curtailed_before, curtailed_after]
+    values = [down_before, down_after]
     bars = right.bar(["baseline", "expanded"], values,
                      color=[plotstyle.INK_MUTED, plotstyle.CATEGORICAL[2]],
                      width=0.5)
@@ -233,9 +233,9 @@ def _draw(lines, storage, curtailed_before, curtailed_after, scenario, scope):
                        (bar.get_x() + bar.get_width() / 2, value),
                        xytext=(0, 5), textcoords="offset points",
                        ha="center", fontsize=9, color=plotstyle.INK)
-    right.set_ylabel("renewable energy curtailed over the week (GWh)")
+    right.set_ylabel("renewable energy dispatched down over the week (GWh)")
     right.set_ylim(0, max(values) * 1.25 + 0.01)
-    right.set_title("curtailment avoided")
+    right.set_title("dispatch-down avoided")
     right.grid(axis="x", visible=False)
 
     fig.tight_layout()

@@ -10,7 +10,7 @@ get in your way.
     n = gridkit.load("WP2033", "north-west")
     gridkit.set_rating(n, "3581-89516-1", 200)      # widen the NI tie
     n.optimize(n.snapshots[:24], solver_name="highs")
-    print(gridkit.curtailment(n))
+    print(gridkit.dispatch_down(n))
 
 Every network carries a week of hourly snapshots, generator ``p_max_pu`` for
 wind and solar, and load ``p_set``.  Read the README's LIMITATIONS section
@@ -295,12 +295,29 @@ def line_loading(network) -> pd.DataFrame:
     return network.lines_t.p0.abs().div(network.lines["s_nom"], axis=1)
 
 
-def curtailment(network) -> pd.DataFrame:
+def dispatch_down(network) -> pd.DataFrame:
     """Available minus dispatched, per weather-driven generator, in MWh.
 
-    Only generators with a ``p_max_pu`` time series can be curtailed - wind
+    Only generators with a ``p_max_pu`` time series can be held back - wind
     and solar.  Everything else is dispatchable and not running is a decision
     rather than a loss.
+
+    This is *not* curtailment in the SEM/EirGrid sense.  Curtailment there is
+    a system-wide, pro-rata reduction of wind and solar output ordered to
+    respect an SNSP or an inertia limit; this model carries no SNSP
+    constraint, no inertia constraint and no unit commitment, so it cannot
+    produce curtailment in that sense and nothing here reproduces EirGrid's
+    mechanism.  What the LOPF withholds is plain economic dispatch-down, and
+    it has exactly two causes:
+
+    * **constraint-based** - the output is stranded behind a specific binding
+      line rating, and lifting that rating would recover it;
+    * **surplus-based** - there is more supply than the demand can absorb in
+      that hour, so no network of any shape could take it.
+
+    The two are separated by re-solving with every rating lifted; see
+    ``examples/b_lopf_dispatch.py``.  Reported per generator, the split is not
+    distinguished: the columns below are the total withheld.
     """
     if not len(network.generators_t.p.columns):
         raise RuntimeError("solve first: n.optimize(...)")
@@ -314,11 +331,11 @@ def curtailment(network) -> pd.DataFrame:
     return pd.DataFrame({
         "offered_mwh": offered.sum(),
         "dispatched_mwh": taken.sum(),
-        "curtailed_mwh": lost.sum(),
-        "curtailed_pct": (lost.sum() / offered.sum().replace(0, np.nan)
-                          * 100.0),
+        "dispatch_down_mwh": lost.sum(),
+        "dispatch_down_pct": (lost.sum() / offered.sum().replace(0, np.nan)
+                              * 100.0),
         "carrier": network.generators.loc[columns, "carrier"],
-    }).sort_values("curtailed_mwh", ascending=False)
+    }).sort_values("dispatch_down_mwh", ascending=False)
 
 
 def unserved(network) -> pd.Series:

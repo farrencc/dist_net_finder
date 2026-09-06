@@ -6,10 +6,13 @@ Solves the linear optimal power flow over the shipped week and reports two
 things: who generated, and how much wind and solar the network refused to
 take.  Writes ``figures/b_dispatch_<scenario>_<scope>.png``.
 
-Curtailment is the number to watch.  A generator that is offered and not taken
-is either uneconomic or unreachable, and in this network it is almost always
-the second: the transmission between the wind and the demand is full.  That is
-the problem the rest of the kit is about.
+Dispatch-down is the number to watch.  A generator that is offered and not
+taken is either uneconomic or unreachable: surplus-based dispatch-down when
+the demand cannot absorb it in that hour, constraint-based when the
+transmission between the wind and the demand is full.  Separating the two is
+the problem the rest of the kit is about.  Note that neither is curtailment in
+the SEM/EirGrid sense - there is no SNSP constraint in this model; see
+``gridkit.dispatch_down``.
 """
 
 import os
@@ -52,17 +55,17 @@ def main(scenario="WP2033", scope="all-island"):
     print(f"\ndemand served: {served.sum() / 1000.0:,.1f} GWh"
           f" · peak {served.max():,.0f} MW")
 
-    lost = gridkit.curtailment(n)
+    lost = gridkit.dispatch_down(n)
     if len(lost):
         by_kind = lost.groupby("carrier")[
-            ["offered_mwh", "dispatched_mwh", "curtailed_mwh"]].sum()
-        by_kind["curtailed_pct"] = (100.0 * by_kind["curtailed_mwh"]
-                                    / by_kind["offered_mwh"])
-        print("\ncurtailment by carrier")
+            ["offered_mwh", "dispatched_mwh", "dispatch_down_mwh"]].sum()
+        by_kind["dispatch_down_pct"] = (100.0 * by_kind["dispatch_down_mwh"]
+                                        / by_kind["offered_mwh"])
+        print("\ndispatch-down by carrier")
         print(by_kind.round(1).to_string())
-        print("\nworst ten generators by energy curtailed")
-        print(lost.head(10)[["carrier", "offered_mwh", "curtailed_mwh",
-                             "curtailed_pct"]].round(1).to_string())
+        print("\nworst ten generators by energy dispatched down")
+        print(lost.head(10)[["carrier", "offered_mwh", "dispatch_down_mwh",
+                             "dispatch_down_pct"]].round(1).to_string())
 
     congestion = _congestion_share(scenario, scope, lost)
 
@@ -80,18 +83,19 @@ def main(scenario="WP2033", scope="all-island"):
 
 
 def _congestion_share(scenario, scope, lost):
-    """How much of the curtailment is the network's fault, in GWh.
+    """How much of the dispatch-down is the network's fault, in GWh.
 
-    Curtailment on its own does not mean the transmission is the problem.
-    WP2033 carries 42 GW of plant against an 8.8 GW peak, so most of the wind
-    offered in any hour has nowhere to go whatever the network looks like -
-    that is surplus, not congestion, and building a line does not recover a
-    megawatt of it.
+    A large dispatch-down total on its own does not mean the transmission is
+    the problem.  WP2033 carries 42 GW of plant against an 8.8 GW peak, so
+    most of the wind offered in any hour has nowhere to go whatever the
+    network looks like - that is surplus-based dispatch-down, not
+    constraint-based, and building a line does not recover a megawatt of it.
 
     The separation is one extra solve.  Lift every branch rating to something
-    that cannot bind and optimise again: what is still curtailed is surplus,
-    and the difference is what the network cost.  It is a copper plate with
-    the real topology, which is the cleanest counterfactual available here.
+    that cannot bind and optimise again: what is still withheld is
+    surplus-based, and the difference is constraint-based - what the network
+    cost.  It is a copper plate with the real topology, which is the cleanest
+    counterfactual available here.
     """
     if not len(lost):
         return {"total": 0.0, "surplus": 0.0, "network": 0.0}
@@ -100,17 +104,18 @@ def _congestion_share(scenario, scope, lost):
     if len(m.transformers):
         m.transformers["s_nom"] = m.transformers["s_nom"] * 1000.0
     gridkit.solve(m)
-    free = gridkit.curtailment(m)
-    total = float(lost["curtailed_mwh"].sum()) / 1000.0
-    surplus = float(free["curtailed_mwh"].sum()) / 1000.0 if len(free) else 0.0
+    free = gridkit.dispatch_down(m)
+    total = float(lost["dispatch_down_mwh"].sum()) / 1000.0
+    surplus = (float(free["dispatch_down_mwh"].sum()) / 1000.0
+               if len(free) else 0.0)
     network = max(total - surplus, 0.0)
-    print(f"\ncurtailment split, over the week")
-    print(f"  {total:8,.1f} GWh curtailed in the real network")
-    print(f"  {surplus:8,.1f} GWh still curtailed with every rating lifted"
-          f"  - surplus generation, no network can take it")
+    print(f"\ndispatch-down split, over the week")
+    print(f"  {total:8,.1f} GWh dispatched down in the real network")
+    print(f"  {surplus:8,.1f} GWh still withheld with every rating lifted"
+          f"  - surplus-based, no network can take it")
     print(f"  {network:8,.1f} GWh recovered by the lift"
-          f"  - this is what the transmission costs"
-          f" ({100.0 * network / max(total, 1e-9):.1f}% of the curtailment)")
+          f"  - constraint-based, this is what the transmission costs"
+          f" ({100.0 * network / max(total, 1e-9):.1f}% of the dispatch-down)")
     return {"total": total, "surplus": surplus, "network": network}
 
 
@@ -169,9 +174,9 @@ def _draw(network, dispatch, served, lost, congestion, scenario, scope):
         # Two stacked segments of one bar, because the parts are shares of a
         # whole and the question is which part is bigger.  A 2px surface gap
         # keeps the segments from reading as one block.
-        parts = [("surplus - no network could take it", congestion["surplus"],
-                  plotstyle.INK_MUTED),
-                 ("congestion - the transmission refused it",
+        parts = [("surplus-based - no network could take it",
+                  congestion["surplus"], plotstyle.INK_MUTED),
+                 ("constraint-based - the transmission refused it",
                   congestion["network"], plotstyle.STATUS["serious"])]
         left = 0.0
         for label, value, colour in parts:
@@ -188,12 +193,13 @@ def _draw(network, dispatch, served, lost, congestion, scenario, scope):
         bottom.set_ylim(-0.45, 0.75)
         bottom.set_yticks([])
         bottom.set_xlim(0, congestion["total"] * 1.02)
-        bottom.set_xlabel("renewable energy curtailed over the week (GWh)")
-        bottom.set_title("why it was curtailed")
+        bottom.set_xlabel(
+            "renewable energy dispatched down over the week (GWh)")
+        bottom.set_title("why it was dispatched down")
         bottom.legend(loc="upper left", ncol=2)
         bottom.grid(axis="y", visible=False)
     else:
-        bottom.text(0.5, 0.5, "nothing curtailed in this scenario",
+        bottom.text(0.5, 0.5, "nothing dispatched down in this scenario",
                     ha="center", va="center", color=plotstyle.INK_SOFT)
         bottom.set_axis_off()
 

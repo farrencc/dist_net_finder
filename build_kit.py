@@ -300,7 +300,7 @@ def _split_north_west_by_carrier(case: psse.Case, network) -> None:
     station, not what kind.  For the kit it is wrong: the region is 90% wind,
     and a wind fleet that carries no carrier gets no weather profile, so it
     would sit at a flat 100% availability all week and the one thing the
-    North-West case is for - curtailment - could not happen.
+    North-West case is for - dispatch-down - could not happen.
 
     So each station's lump is replaced by one generator per carrier, using the
     case's own machine records for the split.  Capacity, dispatch and the bus

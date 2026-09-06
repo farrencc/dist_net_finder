@@ -62,7 +62,7 @@ assumption changes them rather than silently changing the answer:
 
 > **The honest summary.** The *network*, the *fleet*, and *where the demand
 > is* are real. *When* anything happens is invented. A number computed from
-> this — a curtailment total, a constraint hour count — is a statement about
+> this — a dispatch-down total, a constraint hour count — is a statement about
 > a plausible year, not about any year that occurred. Where Phase 4's ERA5
 > path can run, run that instead and use this to perturb it.
 
@@ -223,8 +223,16 @@ offering, the central problem does not appear.
 `python synthetic.py binding` runs the case's own transmission network over
 the windiest hours of the generated year, with renewables offered at a
 negative price so the optimisation maximises their output subject to the
-network and nothing else. Curtailment is then available minus dispatched, and
-it is caused by the network by construction.
+network and nothing else. Dispatch-down is then available minus dispatched.
+Over the windiest hours of a case with 72% headroom it is a mix of
+constraint-based dispatch-down (stranded behind a binding circuit) and
+surplus-based (more wind than the demand can absorb); the binding-circuit
+counts beside it are what say the network is doing some of the work.
+
+None of it is curtailment in the SEM/EirGrid sense — that is a system-wide,
+pro-rata reduction ordered against an SNSP or an inertia limit, and there is
+no SNSP constraint, no inertia constraint and no unit commitment anywhere in
+this model.
 
 ### It binds
 
@@ -232,17 +240,17 @@ it is caused by the network by construction.
 |---|---|---|
 | hours studied (windiest) | 60 | 60 |
 | energy offered | 1.4 GWh | **342.8 GWh** |
-| energy curtailed | **0.0 GWh** | **20.4 GWh** |
-| curtailment | 0.0% | **5.94%** |
-| hours with curtailment | 0 of 60 | **60 of 60** |
+| energy dispatched down | **0.0 GWh** | **20.4 GWh** |
+| dispatch-down | 0.0% | **5.94%** |
+| hours with dispatch-down | 0 of 60 | **60 of 60** |
 | worst circuit loading | 1.000 | 1.000 |
 
-Over 120 hours the WP2033 figure is 40.1 GWh curtailed of 681.9 GWh offered,
-**5.89%**, with curtailment in every hour.
+Over 120 hours the WP2033 figure is 40.1 GWh dispatched down of 681.9 GWh
+offered, **5.89%**, with dispatch-down in every hour.
 
 The 2024 contrast is not a fair fight and should not be read as one: the
 WP2024 *network* is built from in-service machines and that case runs almost
-no wind, so there are only 1.4 GWh to curtail. What it does show is that the
+no wind, so there are only 1.4 GWh to hold back. What it does show is that the
 scenario, not the profile generator, is what creates the problem.
 
 ### And it binds where Phase 3 said it would
@@ -257,9 +265,9 @@ values. A full LOPF over synthetic correlated weather on the 2033 network
 finds the same circuit. Two methods that share no code beyond the network
 agree on the answer, which is worth more than either on its own.
 
-The ten most-curtailed generators are all in the North-West:
+The ten most dispatched-down generators are all in the North-West:
 
-| generator | bus | MWh curtailed over 120 h |
+| generator | bus | MWh dispatched down over 120 h |
 |---|---|---|
 | 40771-1 | Meentycat | 5,626 |
 | 40971-1 | Mulreavy | 4,956 |
@@ -273,7 +281,7 @@ The ten most-curtailed generators are all in the North-West:
 **One caveat, stated because it is load-bearing.** Only one circuit binds.
 The model prices export to Northern Ireland at nothing beyond that tie's
 thermal limit, and in reality SONI would redispatch around it. A study that
-cares about the absolute curtailment number should model the Northern Ireland
+cares about the absolute dispatch-down number should model the Northern Ireland
 side rather than treating it as an infinite sink behind a 93 MVA wire. What
 the result establishes is that the profiles *do* produce binding constraints
 and where, not that 5.9% is the right number.
@@ -309,7 +317,7 @@ The parameters in §1 are the knobs, and they are arguments rather than edits:
 `WIND_CORRELATION_KM` is the interesting one for a network study. Raising it
 makes every site rise and fall together, which is the worst case for
 constraint; lowering it lets the fleet smooth itself. Both are physically
-possible for particular weather regimes, and the difference in curtailment
+possible for particular weather regimes, and the difference in dispatch-down
 between them is a result worth having.
 
 ---
