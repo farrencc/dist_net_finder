@@ -1,9 +1,9 @@
 #!/bin/sh
-# Build the report: pdflatex, bibtex, then pdflatex twice more so the
-# bibliography, the table of contents and the cross-references all resolve.
+# Build the report: pdflatex three times, so the table of contents and the
+# cross-references settle.
 #
 # Needs pdflatex with booktabs, listings, hyperref, geometry, microtype,
-# xcolor, caption, titlesec, fancyhdr, tabularx, enumitem, float and natbib.
+# xcolor, caption, titlesec, fancyhdr, tabularx, enumitem and float.
 # On Debian/Ubuntu:
 #
 #   apt-get install texlive-latex-recommended texlive-latex-extra \
@@ -16,7 +16,6 @@
 set -e
 cd "$(dirname "$0")"
 pdflatex -interaction=nonstopmode -halt-on-error report.tex > /dev/null
-bibtex report > /dev/null || true
 pdflatex -interaction=nonstopmode -halt-on-error report.tex > /dev/null
 pdflatex -interaction=nonstopmode -halt-on-error report.tex > /dev/null
 echo "-> $(pwd)/report.pdf"

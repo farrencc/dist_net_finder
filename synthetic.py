@@ -24,7 +24,7 @@ The one detail that matters
 **Wind is a spatially correlated field, not independent noise per bus.**
 Independent noise makes the fleet's aggregate output far too smooth - the
 central limit theorem flattens 400 independent sites into a nearly constant
-series - and it destroys the only thing a curtailment study is about.  Real
+series - and it destroys the only thing a dispatch-down study is about.  Real
 calms and real storm fronts are hundreds of kilometres across, so Donegal's
 farms are at rated output in the same hours and at zero in the same hours, and
 *that* is what loads the Letterkenny-Strabane tie.
@@ -738,7 +738,7 @@ def spatial_check(result: dict, bins=(0, 25, 50, 100, 150, 200, 300, 400, 600)
     The single check that says whether this module did the one thing it exists
     to do.  If the measured correlation does not fall with distance - if it is
     flat and near zero - the profiles are independent noise and every
-    curtailment number computed from them is wrong.
+    dispatch-down number computed from them is wrong.
     """
     sites = result["sites"]
     placed = sites[(sites["cell"] != "") & (sites["carrier"] == "wind")]
@@ -800,7 +800,7 @@ def _longest_run(mask: np.ndarray) -> int:
 # offering, the central problem does not appear and the exercise is pointless.
 # --------------------------------------------------------------------------- #
 
-#: What a renewable is paid to run in the curtailment optimisation.  Negative
+#: What a renewable is paid to run in the dispatch-down optimisation.  Negative
 #: so the solver runs every available MW unless the network stops it, which
 #: turns "what does the LOPF choose" into "what will the network take".
 RENEWABLE_BID = -1.0
@@ -811,10 +811,17 @@ def binding(case: psse.Case, result: dict, top: int = 120,
             ) -> dict:
     """Run the case's network over the windiest hours and count what binds.
 
-    Renewables are offered at a negative price and may be curtailed, so the
+    Renewables are offered at a negative price and may be held back, so the
     optimisation maximises renewable output subject to the network and nothing
-    else.  Curtailment is then available minus dispatched, and it is caused by
-    the network by construction.
+    else.  Dispatch-down is then available minus dispatched.  Because these
+    are the windiest hours in a heavily over-built case, it is a mix of
+    constraint-based (stranded behind a binding circuit) and surplus-based
+    (more wind than the demand can absorb); the binding-circuit counts beside
+    it are what say the network is doing some of the work.
+
+    None of this is curtailment in the SEM/EirGrid sense - there is no SNSP
+    or inertia constraint here, and no unit commitment - so nothing in this
+    function reproduces EirGrid's curtailment mechanism.
     """
     model = pypsa_net.build(case, min_kv=min_kv)
     n = pypsa_net.for_optimisation(model.network)
@@ -840,8 +847,9 @@ def binding(case: psse.Case, result: dict, top: int = 120,
     present = [l for l in n.loads.index if l in loads.columns]
     n.loads_t.p_set = loads.loc[hours, present]
 
-    # A curtailment study, not a unit-commitment one: nothing is must-run, so
-    # the only thing that can stop a megawatt is the network.
+    # A dispatch-down study, not a unit-commitment one: nothing is must-run,
+    # so the only things that can stop a megawatt are the network and the
+    # demand.
     n.generators["p_min_pu"] = 0.0
     cost = n.generators["marginal_cost"].copy()
     cost[columns] = RENEWABLE_BID
@@ -855,7 +863,7 @@ def binding(case: psse.Case, result: dict, top: int = 120,
     capacity = n.generators.loc[columns, "p_nom"]
     offered = available * capacity
     taken = dispatched.clip(lower=0.0)
-    curtailed = (offered - taken).clip(lower=0.0)
+    withheld = (offered - taken).clip(lower=0.0)
 
     flows = n.lines_t.p0.abs()
     limits = n.lines["s_nom"]
@@ -866,18 +874,19 @@ def binding(case: psse.Case, result: dict, top: int = 120,
         "status": f"{status}/{condition}",
         "hours": int(len(hours)),
         "offered_gwh": float(offered.to_numpy().sum() / 1000.0),
-        "curtailed_gwh": float(curtailed.to_numpy().sum() / 1000.0),
-        "curtailment_pct": float(curtailed.to_numpy().sum()
-                                 / max(offered.to_numpy().sum(), 1e-9) * 100.0),
-        "hours_with_curtailment": int(
-            (curtailed.sum(axis=1) > 1.0).sum()),
+        "dispatch_down_gwh": float(withheld.to_numpy().sum() / 1000.0),
+        "dispatch_down_pct": float(withheld.to_numpy().sum()
+                                   / max(offered.to_numpy().sum(), 1e-9)
+                                   * 100.0),
+        "hours_with_dispatch_down": int(
+            (withheld.sum(axis=1) > 1.0).sum()),
         "hours_with_a_binding_circuit": int((tight.sum(axis=1) > 0).sum()),
         "binding_circuit_hours": int(tight.to_numpy().sum()),
         "distinct_binding_circuits": int((tight.sum(axis=0) > 0).sum()),
         "max_loading": float(loading.to_numpy().max()),
         "worst_circuits": loading.max().sort_values(
             ascending=False).head(10).round(3).to_dict(),
-        "curtailment_by_station": curtailed.sum().sort_values(
+        "dispatch_down_by_station": withheld.sum().sort_values(
             ascending=False).head(10).round(1).to_dict(),
     }
 

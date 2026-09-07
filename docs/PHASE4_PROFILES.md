@@ -183,7 +183,7 @@ What that does to the curve:
 
 Half the farm is still running at nominal cut-out, and the fleet reaches only
 87% of nameplate at nominal rated speed. Both are right and both matter for a
-curtailment study.
+dispatch-down study.
 
 Then **availability 0.90** — wake, array electrical, soiling, icing,
 outages — applied as a flat multiplier.

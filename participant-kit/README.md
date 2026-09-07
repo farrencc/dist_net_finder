@@ -39,7 +39,7 @@ n = gridkit.load("WP2033", "all-island")   # or "north-west"
 print(gridkit.summary(n))
 
 gridkit.solve(n)                           # n.optimize, with the solver log off
-print(gridkit.curtailment(n).head())       # what the network refused to take
+print(gridkit.dispatch_down(n).head())     # what the dispatch refused to take
 print(gridkit.binding(n).head())           # which circuits were full, and for how long
 ```
 
@@ -76,8 +76,8 @@ Four TYTFS scenarios, at two scopes:
 | `north-west` | Donegal, Sligo and north Mayo folded to 15 station-level nodes - EirGrid Wind Dispatch Tool constraint groups 1 to 3, with the rest of the system pinned at the boundary. Small enough to reason about by hand |
 
 `WP2033` is the interesting one: 42.6 GW of connected capacity against an
-8.8 GW peak. That is where constraint and curtailment actually bite, and it is
-the case the hackathon is about.
+8.8 GW peak. That is where constraint and dispatch-down actually bite, and it
+is the case the hackathon is about.
 
 Each network carries **168 hourly snapshots** - one week, centred on the hour
 that matches its own TYTFS state (winter peak or summer valley). `n.meta`
@@ -128,7 +128,7 @@ Reading results back, after `n.optimize(...)`:
 |---|---|
 | `gridkit.line_loading(n)` | \|flow\| / rating, every circuit, every hour |
 | `gridkit.binding(n)` | how many hours each circuit spent at its rating |
-| `gridkit.curtailment(n)` | wind and solar offered, taken, and lost |
+| `gridkit.dispatch_down(n)` | wind and solar offered, taken, and withheld |
 | `gridkit.unserved(n)` | demand the network could not reach, per bus |
 | `gridkit.freeze_dispatch(n)` | **read this one before you run `n.lpf()`** |
 | `gridkit.solve(n)` | `n.optimize` with the solver log off |
@@ -171,18 +171,19 @@ optimised about the flow itself - the power divides between paths in inverse
 proportion to reactance, and nothing consults the ratings. If the picture is
 wrong here, nothing downstream is right.
 
-**(b) LOPF, dispatch and curtailment.** Least-cost dispatch over the week,
+**(b) LOPF, dispatch and dispatch-down.** Least-cost dispatch over the week,
 generation by carrier, and the energy that was offered and refused. It then
-separates the curtailment into two parts with one extra solve: lift every
-rating out of the way and re-optimise, and whatever is *still* curtailed is
-surplus that no network could have taken. The difference is what the
-transmission actually cost. Curtailment on its own does not mean the network
-is the problem, and in WP2033 most of it is not.
+separates the dispatch-down into two parts with one extra solve: lift every
+rating out of the way and re-optimise, and whatever is *still* withheld is
+**surplus-based** - more supply than the demand can absorb, which no network
+could have taken. The difference is **constraint-based**, and it is what the
+transmission actually cost. A large dispatch-down total on its own does not
+mean the network is the problem, and in WP2033 most of it is not.
 
 **(c) Capacity expansion.** Marks the binding circuits extendable, offers a
 battery at every renewable bus, gives both an annualised cost, and lets the
-optimiser trade building against curtailing. The costs are round numbers, not
-a price list - the point is the pattern.
+optimiser trade building against dispatching down. The costs are round
+numbers, not a price list - the point is the pattern.
 
 **(d) PTDF from the pseudoinverse.** Builds `L = K B Kᵀ`, inverts it with the
 Moore-Penrose pseudoinverse, and reads `PTDF = B Kᵀ L⁺` off it. Then checks
@@ -282,11 +283,21 @@ them ever happened. Wind and solar generators without a geocoded site of their
 own borrow the nearest profile of the same carrier, which makes those pairs
 perfectly correlated when they should not be.
 
+**Dispatch-down is not curtailment.** `gridkit.dispatch_down` reports wind and
+solar that was offered and not taken. That is plain economic dispatch-down,
+and it splits into **constraint-based** (stranded behind a binding line rating)
+and **surplus-based** (more supply than the demand can absorb). It is *not*
+curtailment in the SEM/EirGrid sense: real curtailment is a system-wide,
+pro-rata reduction ordered to respect an SNSP or an inertia limit, and this
+model carries no SNSP constraint, no inertia constraint and no unit
+commitment. Nothing in the kit reproduces EirGrid's curtailment mechanism, so
+do not compare a number from here against a published curtailment figure.
+
 **Costs are placeholders, and renewables bid negative.** Marginal costs are
 per-carrier round numbers, not a fuel price stack: gas 90, biomass 40, hydro 1,
 imports 150 EUR/MWh, and wind and solar at **−1 EUR/MWh**. The negative bid is
 deliberate - it is how a support scheme makes a wind farm willing to pay to
-stay on, and it is what makes curtailment a last resort in the optimisation
+stay on, and it is what makes dispatch-down a last resort in the optimisation
 rather than a free choice. It also makes the objective come out negative, so
 only *differences* between two objectives mean anything.
 

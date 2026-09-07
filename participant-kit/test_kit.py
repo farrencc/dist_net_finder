@@ -74,7 +74,7 @@ def test_wind_and_solar_carry_a_profile():
     """A weather generator without a p_max_pu series runs flat out all week.
 
     That is how 7.8 GW of "wind" once turned into must-run baseload in
-    WP2033, and every curtailment number computed from it was wrong.
+    WP2033, and every dispatch-down number computed from it was wrong.
     """
     for scenario in gridkit.SCENARIOS:
         for scope in gridkit.SCOPES:
@@ -269,6 +269,33 @@ def test_placed_buses_drops_the_gulf_of_guinea():
         assert len(placed) < len(n.buses)          # some really are unplaced
         assert placed["x"].between(-11.0, -5.0).all()
         assert placed["y"].between(51.0, 56.0).all()
+
+
+def test_dispatch_down_reports_the_renamed_columns():
+    """The kit reports economic dispatch-down, not SEM/EirGrid curtailment.
+
+    Named and columned accordingly: there is no SNSP constraint in this model,
+    so nothing here is curtailment in that sense.
+    """
+    n = solved()
+    lost = gridkit.dispatch_down(n)
+    assert list(lost.columns) == ["offered_mwh", "dispatched_mwh",
+                                  "dispatch_down_mwh", "dispatch_down_pct",
+                                  "carrier"]
+    assert not hasattr(gridkit, "curtailment"), "the old name must be gone"
+    assert (lost["dispatch_down_mwh"] >= -1e-6).all()
+    assert np.allclose(lost["offered_mwh"] - lost["dispatched_mwh"],
+                       lost["dispatch_down_mwh"], atol=1.0)
+    assert lost["dispatch_down_mwh"].is_monotonic_decreasing
+
+
+def test_dispatch_down_refuses_before_a_solve():
+    n = gridkit.load(SCENARIO, SCOPE)
+    try:
+        gridkit.dispatch_down(n)
+    except RuntimeError:
+        return
+    raise AssertionError("dispatch_down should refuse an unsolved network")
 
 
 def test_load_shedding_exists_at_every_load_bus():

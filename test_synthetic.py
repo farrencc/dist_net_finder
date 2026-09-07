@@ -5,7 +5,7 @@ that is the single thing this module exists to get right and the single thing
 that is invisible in a plot of any one bus.  Independent noise per bus would
 pass every other test in this file: the profiles would be in [0, 1], the load
 factor would be 30%, the demand shape would have an evening peak.  It would
-also make the fleet aggregate nearly constant and produce no curtailment at
+also make the fleet aggregate nearly constant and produce no dispatch-down at
 all, and the two tests below would fail.
 
 The anchors are tested against the case files themselves, so a change to the
@@ -318,14 +318,14 @@ def test_the_erbs_diffuse_fraction_is_bounded():
 # The requirement: WP2033 has to bind
 # --------------------------------------------------------------------------- #
 
-def test_wp2033_produces_binding_constraints_and_curtailment(case, result):
+def test_wp2033_produces_binding_constraints_and_dispatch_down(case, result):
     """If this fails the hackathon's central problem does not appear."""
     pytest.importorskip("highspy")
     report = m.binding(case, result, top=12)
     assert report["status"].startswith("ok")
-    assert report["curtailed_gwh"] > 0.0
-    assert report["curtailment_pct"] > 1.0
-    assert report["hours_with_curtailment"] == report["hours"]
+    assert report["dispatch_down_gwh"] > 0.0
+    assert report["dispatch_down_pct"] > 1.0
+    assert report["hours_with_dispatch_down"] == report["hours"]
     assert report["distinct_binding_circuits"] >= 1
     assert report["max_loading"] >= 0.999
 

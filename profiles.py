@@ -3,15 +3,15 @@
 Why
 ---
 A TYTFS case is four snapshots.  Anything that asks when the network is
-constrained - curtailment, export limits, the value of a reinforcement - needs
-a year, and the year has to have real weather in it.  A random walk with the
-right marginal distribution gets the one thing that matters wrong: **the
-spatial correlation**.  Calm anticyclones and storm fronts are hundreds of
-kilometres across and cross Ireland in hours, so every wind farm in Donegal is
-at rated output within the same six hours and at zero within the same six
-hours, and the constraint on the Letterkenny-Strabane tie is a consequence of
-that and of nothing else.  ERA5 has it because ERA5 is a reanalysis of what
-the atmosphere actually did.
+constrained - dispatch-down, export limits, the value of a reinforcement -
+needs a year, and the year has to have real weather in it.  A random walk
+with the right marginal distribution gets the one thing that matters wrong:
+**the spatial correlation**.  Calm anticyclones and storm fronts are hundreds
+of kilometres across and cross Ireland in hours, so every wind farm in
+Donegal is at rated output within the same six hours and at zero within the
+same six hours, and the constraint on the Letterkenny-Strabane tie is a
+consequence of that and of nothing else.  ERA5 has it because ERA5 is a
+reanalysis of what the atmosphere actually did.
 
 This module fetches ERA5 through Open-Meteo's historical archive - no key, no
 account, plain HTTP GET - converts it to per-generator capacity factors, and
